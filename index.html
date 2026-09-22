@@ -83,6 +83,18 @@
       letter-spacing: 0.05em;
     }
 
+    .sync-status {
+      font-size: 0.8rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sync-online { background: rgba(52, 211, 153, 0.15); color: var(--success); border: 1px solid var(--success); }
+    .sync-offline { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+
     h1 {
       margin: 0;
       font-size: 2.8rem;
@@ -264,7 +276,6 @@
 
     tr:hover td { background-color: rgba(255, 255, 255, 0.03); }
 
-    /* 進度條樣式 */
     .progress-container {
       display: flex;
       align-items: center;
@@ -336,6 +347,7 @@
         <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo" title="雙擊可更改圖片網址">
         <div>
           <span class="badge-pro">CLOUD ENTERPRISE</span>
+          <span id="sync-indicator" class="sync-status sync-offline">● 連線中...</span>
           <h1>Filament Outsource Tracing</h1>
         </div>
       </div>
@@ -371,7 +383,7 @@
 
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDrRzvbrpq87mDlHE8vpoAfWxwNS5aOV2E",
@@ -430,17 +442,18 @@
   let activeSheetId = "sheet_1";
   let draggedColIndex = null;
   let draggedRowIndex = null;
+  let isCloudLoaded = false;
 
   const logoEl = document.getElementById('app-logo');
+  const syncIndicator = document.getElementById('sync-indicator');
 
-  // 1. 快取載入
+  // 先讀取本地快取顯示
   const cachedData = localStorage.getItem('filament_app_data');
   if (cachedData) {
     try {
       appState = JSON.parse(cachedData);
     } catch(e) { console.error("快取解析失敗", e); }
   }
-  
   renderApp();
 
   logoEl.ondblclick = () => {
@@ -451,7 +464,7 @@
     }
   };
 
-  // 2. Firebase 雲端資料同步
+  // 雲端監聽：安全讀取並同步
   onValue(dbRef, (snapshot) => {
     const data = snapshot.val();
     if (data && data.workbook && data.workbook.length > 0) {
@@ -463,18 +476,53 @@
       }
 
       localStorage.setItem('filament_app_data', JSON.stringify(appState));
+      isCloudLoaded = true;
+      updateSyncStatus(true);
       renderApp();
+    } else if (!data) {
+      // 若雲端完全為空，將預設資料初始化寫入雲端（僅一次）
+      set(dbRef, appState);
+      isCloudLoaded = true;
+      updateSyncStatus(true);
     }
   }, (error) => {
     console.warn("雲端連線失敗，目前顯示離線快取資料", error);
+    updateSyncStatus(false);
   });
 
-  function saveData() {
+  function updateSyncStatus(isOnline) {
+    if (isOnline) {
+      syncIndicator.className = "sync-status sync-online";
+      syncIndicator.textContent = "● 雲端即時連線";
+    } else {
+      syncIndicator.className = "sync-status sync-offline";
+      syncIndicator.textContent = "● 離線模式";
+    }
+  }
+
+  // 💡 安全的細粒度保存 (避免全量覆蓋)
+  function saveData(sheetIndex = null, rowIndex = null) {
+    // 1. 保存到本機快取
     localStorage.setItem('filament_app_data', JSON.stringify(appState));
     renderApp();
-    set(dbRef, appState).catch(err => {
-      console.error("Firebase 寫入失敗", err);
-    });
+
+    // 未與雲端連線前不安置發送
+    if (!isCloudLoaded) return;
+
+    // 2. 細粒度更新至雲端 (僅更新部分結構，不全量重置)
+    if (sheetIndex !== null && rowIndex !== null) {
+      const rowPath = `outsource_filament_app/workbook/${sheetIndex}/data/${rowIndex}`;
+      const rowData = appState.workbook[sheetIndex].data[rowIndex];
+      const updates = {};
+      updates[rowPath] = rowData;
+      update(ref(db), updates).catch(err => console.error("局部更新失敗", err));
+    } else {
+      // 結構性變更 (新增工作表/刪除列) 使用 safe update
+      update(ref(db), {
+        "outsource_filament_app/logoUrl": appState.logoUrl,
+        "outsource_filament_app/workbook": appState.workbook
+      }).catch(err => console.error("雲端同步失敗", err));
+    }
   }
 
   function renderApp() {
@@ -487,13 +535,16 @@
     return appState.workbook.find(s => s.id === activeSheetId) || appState.workbook[0];
   }
 
+  function getActiveSheetIndex() {
+    return appState.workbook.findIndex(s => s.id === activeSheetId);
+  }
+
   function isImageUrl(urlStr) {
     if (typeof urlStr !== 'string') return false;
     const str = urlStr.trim();
     return str.startsWith('http://') || str.startsWith('https://') || str.startsWith('data:image');
   }
 
-  // 💡 判斷欄位是否為進度欄位（同時檢查 Key 與 Label）
   function isProgressCol(col) {
     if (!col) return false;
     const keyMatch = col.key === 'progress';
@@ -580,9 +631,6 @@
     }
   }
 
-  // -------------------------------------------------------------
-  // 💡 表格渲染與拖拽調整 (欄位與列位拖移 + 進度條修復)
-  // -------------------------------------------------------------
   function renderTable() {
     const sheet = getActiveSheet();
     if (!sheet || !sheet.data) return;
@@ -590,7 +638,6 @@
     const thead = document.getElementById('table-head');
     const tbody = document.getElementById('table-body');
 
-    // 1. 渲染 Header
     let trHeadHtml = '<tr><th style="width: 40px; text-align: center;">≡</th>';
     sheet.columns.forEach((col, index) => {
       trHeadHtml += `
@@ -632,7 +679,6 @@
       };
     });
 
-    // 2. 渲染 Body
     tbody.innerHTML = '';
     sheet.data.forEach((row, index) => {
       const tr = document.createElement('tr');
@@ -644,7 +690,6 @@
       sheet.columns.forEach(col => {
         let val = row[col.key] !== undefined ? row[col.key] : '-';
         
-        // 💡 強化進度條判斷邏輯
         if (isProgressCol(col)) {
           const numVal = Math.min(100, Math.max(0, parseInt(val) || 0));
           trBodyHtml += `
@@ -758,7 +803,7 @@
       } else {
         sheet.data[index][key] = newVal.trim();
       }
-      saveData();
+      saveData(getActiveSheetIndex(), index);
     }
   }
 
@@ -780,7 +825,7 @@
             if (isProgressCol(col)) sheet.data[index][col.key] = 100;
           });
         }
-        saveData();
+        saveData(getActiveSheetIndex(), index);
       }
     }
   }
@@ -819,9 +864,6 @@
     saveData();
   };
 
-  // -------------------------------------------------------------
-  // 💡 匯出 Excel
-  // -------------------------------------------------------------
   document.getElementById('export-excel-btn').onclick = async () => {
     const sheet = getActiveSheet();
     if (!sheet || !sheet.data || sheet.data.length === 0) {
@@ -869,9 +911,6 @@
     URL.revokeObjectURL(url);
   };
 
-  // -------------------------------------------------------------
-  // 💡 匯入 Excel
-  // -------------------------------------------------------------
   const excelFileInput = document.getElementById('excel-file-input');
 
   document.getElementById('import-excel-btn').onclick = () => {

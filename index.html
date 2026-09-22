@@ -168,9 +168,10 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid var(--accent);
     }
-    .sync-online { background: rgba(52, 211, 153, 0.15); color: var(--success); border: 1px solid var(--success); }
-    .sync-offline { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
 
     .user-info {
       display: flex;
@@ -455,7 +456,7 @@
         <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo" title="雙擊可更改圖片網址">
         <div>
           <span class="badge-pro">CLOUD ENTERPRISE</span>
-          <span id="sync-indicator" class="sync-status sync-offline">● 未登入</span>
+          <span id="sync-indicator" class="sync-status">● 最後更新: 無紀錄</span>
           <h1>Filament Outsource Tracing</h1>
         </div>
       </div>
@@ -561,6 +562,7 @@
 
   let appState = {
     logoUrl: defaultLogo,
+    lastUpdated: "",
     workbook: [
       { id: "sheet_1", name: "工程及製造追蹤項目", columns: defaultColumns, data: initialData },
       { id: "sheet_2", name: "採購追蹤項目", columns: defaultColumns, data: [] },
@@ -575,6 +577,18 @@
 
   const logoEl = document.getElementById('app-logo');
   const syncIndicator = document.getElementById('sync-indicator');
+
+  // 時間格式化工具
+  function getCurrentFormattedTime() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    return `${yyyy}/${mm}/${dd} ${hh}:${min}:${ss}`;
+  }
 
   // --- 身份驗證邏輯 ---
   loginBtn.onclick = () => {
@@ -618,7 +632,6 @@
       authOverlay.style.display = "flex";
       userDisplay.textContent = "";
       logoutBtn.style.display = "none";
-      updateSyncStatus(false);
     }
   });
 
@@ -653,31 +666,28 @@
 
         localStorage.setItem('filament_app_data', JSON.stringify(appState));
         isCloudLoaded = true;
-        updateSyncStatus(true);
         renderApp();
       } else if (!data) {
+        appState.lastUpdated = getCurrentFormattedTime();
         set(dbRef, appState);
         isCloudLoaded = true;
-        updateSyncStatus(true);
+        renderApp();
       }
     }, (error) => {
       console.warn("雲端連線失敗，目前顯示離線快取資料", error);
-      updateSyncStatus(false);
     });
   }
 
-  function updateSyncStatus(isOnline) {
-    if (isOnline) {
-      syncIndicator.className = "sync-status sync-online";
-      syncIndicator.textContent = "● 雲端即時連線";
-    } else {
-      syncIndicator.className = "sync-status sync-offline";
-      syncIndicator.textContent = auth.currentUser ? "● 離線模式" : "● 未登入";
-    }
+  function updateSyncStatusText() {
+    const timeStr = appState.lastUpdated || "無紀錄";
+    syncIndicator.textContent = `● 最後更新: ${timeStr}`;
   }
 
   // 安全的細粒度保存
   function saveData(sheetIndex = null, rowIndex = null) {
+    const timeNow = getCurrentFormattedTime();
+    appState.lastUpdated = timeNow;
+
     localStorage.setItem('filament_app_data', JSON.stringify(appState));
     renderApp();
 
@@ -685,13 +695,17 @@
 
     if (sheetIndex !== null && rowIndex !== null) {
       const rowPath = `outsource_filament_app/workbook/${sheetIndex}/data/${rowIndex}`;
+      const timePath = `outsource_filament_app/lastUpdated`;
       const rowData = appState.workbook[sheetIndex].data[rowIndex];
+      
       const updates = {};
       updates[rowPath] = rowData;
+      updates[timePath] = timeNow;
       update(ref(db), updates).catch(err => console.error("局部更新失敗", err));
     } else {
       update(ref(db), {
         "outsource_filament_app/logoUrl": appState.logoUrl,
+        "outsource_filament_app/lastUpdated": timeNow,
         "outsource_filament_app/workbook": appState.workbook
       }).catch(err => console.error("雲端同步失敗", err));
     }
@@ -699,6 +713,7 @@
 
   function renderApp() {
     logoEl.src = appState.logoUrl || defaultLogo;
+    updateSyncStatusText();
     renderSheets();
     renderTable();
   }

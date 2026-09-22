@@ -793,85 +793,87 @@
       link.click();
     };
 
-    // 一鍵 6 合 1 匯出高解析度圖表 PNG
+    // 一鍵 6 合 1 匯出高解析度圖表 PNG (已修復 roundRect 瀏覽器相容性)
     window.exportAllChartsCombined = function() {
-      const chartsConfig = [
-        { id: 'vendorCountChart', title: '1. FAI合格已派工-件數' },
-        { id: 'vendorPcsChart', title: '2. FAI合格已派工-已交貨PCS' },
-        { id: 'faiPendingChart', title: '3. FAI待驗證-件數' },
-        { id: 'dailyCountChart', title: '4. FAI已派工逐日累積件數' },
-        { id: 'dailyPcsChart', title: '5. FAI已派工逐日累積PCS數' },
-        { id: 'faiPendingDailyChart', title: '6. FAI待驗證逐日累積件數' }
-      ];
+      try {
+        const chartsConfig = [
+          { id: 'vendorCountChart', title: '1. FAI合格已派工-件數' },
+          { id: 'vendorPcsChart', title: '2. FAI合格已派工-已交貨PCS' },
+          { id: 'faiPendingChart', title: '3. FAI待驗證-件數' },
+          { id: 'dailyCountChart', title: '4. FAI已派工逐日累積件數' },
+          { id: 'dailyPcsChart', title: '5. FAI已派工逐日累積PCS數' },
+          { id: 'faiPendingDailyChart', title: '6. FAI待驗證逐日累積件數' }
+        ];
 
-      // 建立合併畫布 (2x3 Grid，高清晰大圖)
-      const combinedCanvas = document.createElement('canvas');
-      const singleWidth = 750;
-      const singleHeight = 400;
-      const padding = 30;
-      const headerHeight = 70;
+        const combinedCanvas = document.createElement('canvas');
+        const singleWidth = 750;
+        const singleHeight = 400;
+        const padding = 30;
+        const headerHeight = 70;
 
-      const cols = 3;
-      const rows = 2;
+        const cols = 3;
+        const rows = 2;
 
-      combinedCanvas.width = cols * singleWidth + (cols + 1) * padding;
-      combinedCanvas.height = headerHeight + rows * singleHeight + (rows + 1) * padding;
+        combinedCanvas.width = cols * singleWidth + (cols + 1) * padding;
+        combinedCanvas.height = headerHeight + rows * singleHeight + (rows + 1) * padding;
 
-      const ctx = combinedCanvas.getContext('2d');
+        const ctx = combinedCanvas.getContext('2d');
 
-      // 背景填色
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+        // 主背景
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
 
-      // 主標題
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 28px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('衛星工廠進度追蹤總覽分析報告', combinedCanvas.width / 2, 45);
+        // 大標題
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 28px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('衛星工廠進度追蹤總覽分析報告', combinedCanvas.width / 2, 45);
 
-      // 繪製每張圖表
-      chartsConfig.forEach((item, index) => {
-        const srcCanvas = document.getElementById(item.id);
-        const col = index % cols;
-        const row = Math.floor(index / cols);
+        chartsConfig.forEach((item, index) => {
+          const srcCanvas = document.getElementById(item.id);
+          if (!srcCanvas) return;
 
-        const x = padding + col * (singleWidth + padding);
-        const y = headerHeight + padding + row * (singleHeight + padding);
+          const col = index % cols;
+          const row = Math.floor(index / cols);
 
-        // 卡片外框背景
-        ctx.fillStyle = '#1e293b';
-        ctx.strokeStyle = '#334155';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.roundRect(x, y, singleWidth, singleHeight, 10);
-        ctx.fill();
-        ctx.stroke();
+          const x = padding + col * (singleWidth + padding);
+          const y = headerHeight + padding + row * (singleHeight + padding);
 
-        // 子圖表標題
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 16px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText(item.title, x + 16, y + 30);
+          // 卡片背景 (採用標準 fillRect 避免 roundRect 相容性問題)
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(x, y, singleWidth, singleHeight);
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, singleWidth, singleHeight);
 
-        // 先幫子畫布繪製背景色以防透明
-        const srcCtx = srcCanvas.getContext('2d');
-        srcCtx.save();
-        srcCtx.globalCompositeOperation = 'destination-over';
-        srcCtx.fillStyle = '#1e293b';
-        srcCtx.fillRect(0, 0, srcCanvas.width, srcCanvas.height);
-        srcCtx.restore();
+          // 卡片標題
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = 'bold 16px sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText(item.title, x + 16, y + 30);
 
-        // 將子畫布貼入大圖
-        const chartDrawY = y + 40;
-        const chartDrawHeight = singleHeight - 50;
-        ctx.drawImage(srcCanvas, x + 10, chartDrawY, singleWidth - 20, chartDrawHeight);
-      });
+          // 子 Canvas 補底色
+          const srcCtx = srcCanvas.getContext('2d');
+          srcCtx.save();
+          srcCtx.globalCompositeOperation = 'destination-over';
+          srcCtx.fillStyle = '#1e293b';
+          srcCtx.fillRect(0, 0, srcCanvas.width, srcCanvas.height);
+          srcCtx.restore();
 
-      // 下載大圖
-      const link = document.createElement('a');
-      link.download = `衛星工廠進度追蹤_6合1分析報告_${new Date().toISOString().slice(0,10)}.png`;
-      link.href = combinedCanvas.toDataURL('image/png');
-      link.click();
+          // 繪製至大畫布
+          const chartDrawY = y + 40;
+          const chartDrawHeight = singleHeight - 50;
+          ctx.drawImage(srcCanvas, x + 10, chartDrawY, singleWidth - 20, chartDrawHeight);
+        });
+
+        const link = document.createElement('a');
+        link.download = `衛星工廠進度追蹤_6合1分析報告_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = combinedCanvas.toDataURL('image/png');
+        link.click();
+      } catch (err) {
+        console.error(err);
+        alert('匯出圖表時發生錯誤：' + err.message);
+      }
     };
 
     loadDataFromCloud();

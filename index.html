@@ -32,6 +32,83 @@
       color: var(--text-main);
     }
 
+    /* 登入 Modal 樣式 */
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(11, 19, 41, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .auth-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 32px;
+      border-radius: 12px;
+      width: 360px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .auth-card h2 {
+      margin: 0;
+      color: var(--accent);
+      text-align: center;
+      font-size: 1.5rem;
+    }
+
+    .auth-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .auth-input-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .auth-input-group input {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 6px;
+      outline: none;
+      font-size: 0.95rem;
+    }
+
+    .auth-input-group input:focus {
+      border-color: var(--accent);
+    }
+
+    .auth-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .auth-btns .btn {
+      flex: 1;
+      padding: 10px;
+    }
+
+    .auth-error {
+      color: var(--danger);
+      font-size: 0.82rem;
+      text-align: center;
+      min-height: 18px;
+    }
+
+    /* 主應用介面 */
     .app-container {
       display: flex;
       flex-direction: column;
@@ -94,6 +171,17 @@
     }
     .sync-online { background: rgba(52, 211, 153, 0.15); color: var(--success); border: 1px solid var(--success); }
     .sync-offline { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-email {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
 
     h1 {
       margin: 0;
@@ -341,15 +429,39 @@
 </head>
 <body>
 
+  <!-- 登入驗證視窗 Modal -->
+  <div id="auth-overlay" class="auth-overlay">
+    <div class="auth-card">
+      <h2>系統登入</h2>
+      <div class="auth-input-group">
+        <label>電子郵件 (Email)</label>
+        <input type="email" id="auth-email" placeholder="name@company.com">
+      </div>
+      <div class="auth-input-group">
+        <label>密碼 (Password)</label>
+        <input type="password" id="auth-password" placeholder="請輸入密碼">
+      </div>
+      <div id="auth-error" class="auth-error"></div>
+      <div class="auth-btns">
+        <button id="login-btn" class="btn btn-primary">登入</button>
+        <button id="register-btn" class="btn">註冊新帳號</button>
+      </div>
+    </div>
+  </div>
+
   <div class="app-container">
     <header>
       <div class="brand-title">
         <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo" title="雙擊可更改圖片網址">
         <div>
           <span class="badge-pro">CLOUD ENTERPRISE</span>
-          <span id="sync-indicator" class="sync-status sync-offline">● 連線中...</span>
+          <span id="sync-indicator" class="sync-status sync-offline">● 未登入</span>
           <h1>Filament Outsource Tracing</h1>
         </div>
+      </div>
+      <div class="user-info">
+        <span id="user-display" class="user-email"></span>
+        <button id="logout-btn" class="btn" style="display: none;">登出</button>
       </div>
     </header>
 
@@ -384,6 +496,13 @@
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    signOut, 
+    onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDrRzvbrpq87mDlHE8vpoAfWxwNS5aOV2E",
@@ -398,7 +517,17 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  const auth = getAuth(app);
   const dbRef = ref(db, 'outsource_filament_app');
+
+  const authOverlay = document.getElementById('auth-overlay');
+  const authEmailInput = document.getElementById('auth-email');
+  const authPasswordInput = document.getElementById('auth-password');
+  const authError = document.getElementById('auth-error');
+  const loginBtn = document.getElementById('login-btn');
+  const registerBtn = document.getElementById('register-btn');
+  const userDisplay = document.getElementById('user-display');
+  const logoutBtn = document.getElementById('logout-btn');
 
   const defaultColumns = [
     { key: "itemNo", label: "品號", isSystem: false },
@@ -447,6 +576,52 @@
   const logoEl = document.getElementById('app-logo');
   const syncIndicator = document.getElementById('sync-indicator');
 
+  // --- 身份驗證邏輯 ---
+  loginBtn.onclick = () => {
+    const email = authEmailInput.value.trim();
+    const password = authPasswordInput.value.trim();
+    if (!email || !password) {
+      authError.textContent = "請輸入 Email 與密碼";
+      return;
+    }
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => { authError.textContent = ""; })
+      .catch((err) => { authError.textContent = "登入失敗：" + err.message; });
+  };
+
+  registerBtn.onclick = () => {
+    const email = authEmailInput.value.trim();
+    const password = authPasswordInput.value.trim();
+    if (!email || !password) {
+      authError.textContent = "請輸入 Email 與密碼";
+      return;
+    }
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(() => { authError.textContent = ""; alert("註冊成功並已自動登入！"); })
+      .catch((err) => { authError.textContent = "註冊失敗：" + err.message; });
+  };
+
+  logoutBtn.onclick = () => {
+    signOut(auth).then(() => {
+      alert("已成功登出");
+    });
+  };
+
+  // 監聽登入狀態變更
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      authOverlay.style.display = "none";
+      userDisplay.textContent = user.email;
+      logoutBtn.style.display = "inline-block";
+      initCloudSync();
+    } else {
+      authOverlay.style.display = "flex";
+      userDisplay.textContent = "";
+      logoutBtn.style.display = "none";
+      updateSyncStatus(false);
+    }
+  });
+
   // 先讀取本地快取顯示
   const cachedData = localStorage.getItem('filament_app_data');
   if (cachedData) {
@@ -464,31 +639,32 @@
     }
   };
 
-  // 雲端監聽：安全讀取並同步
-  onValue(dbRef, (snapshot) => {
-    const data = snapshot.val();
-    if (data && data.workbook && data.workbook.length > 0) {
-      appState = data;
-      if (!appState.logoUrl) appState.logoUrl = defaultLogo;
-      
-      if (!appState.workbook.find(s => s.id === activeSheetId)) {
-        activeSheetId = appState.workbook[0].id;
-      }
+  // 雲端監聽：登入後啟動
+  function initCloudSync() {
+    onValue(dbRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.workbook && data.workbook.length > 0) {
+        appState = data;
+        if (!appState.logoUrl) appState.logoUrl = defaultLogo;
+        
+        if (!appState.workbook.find(s => s.id === activeSheetId)) {
+          activeSheetId = appState.workbook[0].id;
+        }
 
-      localStorage.setItem('filament_app_data', JSON.stringify(appState));
-      isCloudLoaded = true;
-      updateSyncStatus(true);
-      renderApp();
-    } else if (!data) {
-      // 若雲端完全為空，將預設資料初始化寫入雲端（僅一次）
-      set(dbRef, appState);
-      isCloudLoaded = true;
-      updateSyncStatus(true);
-    }
-  }, (error) => {
-    console.warn("雲端連線失敗，目前顯示離線快取資料", error);
-    updateSyncStatus(false);
-  });
+        localStorage.setItem('filament_app_data', JSON.stringify(appState));
+        isCloudLoaded = true;
+        updateSyncStatus(true);
+        renderApp();
+      } else if (!data) {
+        set(dbRef, appState);
+        isCloudLoaded = true;
+        updateSyncStatus(true);
+      }
+    }, (error) => {
+      console.warn("雲端連線失敗，目前顯示離線快取資料", error);
+      updateSyncStatus(false);
+    });
+  }
 
   function updateSyncStatus(isOnline) {
     if (isOnline) {
@@ -496,20 +672,17 @@
       syncIndicator.textContent = "● 雲端即時連線";
     } else {
       syncIndicator.className = "sync-status sync-offline";
-      syncIndicator.textContent = "● 離線模式";
+      syncIndicator.textContent = auth.currentUser ? "● 離線模式" : "● 未登入";
     }
   }
 
-  // 💡 安全的細粒度保存 (避免全量覆蓋)
+  // 安全的細粒度保存
   function saveData(sheetIndex = null, rowIndex = null) {
-    // 1. 保存到本機快取
     localStorage.setItem('filament_app_data', JSON.stringify(appState));
     renderApp();
 
-    // 未與雲端連線前不安置發送
-    if (!isCloudLoaded) return;
+    if (!isCloudLoaded || !auth.currentUser) return;
 
-    // 2. 細粒度更新至雲端 (僅更新部分結構，不全量重置)
     if (sheetIndex !== null && rowIndex !== null) {
       const rowPath = `outsource_filament_app/workbook/${sheetIndex}/data/${rowIndex}`;
       const rowData = appState.workbook[sheetIndex].data[rowIndex];
@@ -517,7 +690,6 @@
       updates[rowPath] = rowData;
       update(ref(db), updates).catch(err => console.error("局部更新失敗", err));
     } else {
-      // 結構性變更 (新增工作表/刪除列) 使用 safe update
       update(ref(db), {
         "outsource_filament_app/logoUrl": appState.logoUrl,
         "outsource_filament_app/workbook": appState.workbook

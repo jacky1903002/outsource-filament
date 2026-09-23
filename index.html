@@ -417,7 +417,7 @@
 
     .action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; }
     .action-btn:hover { color: var(--danger); }
-    
+
     .table-img-preview {
       max-width: 48px;
       max-height: 48px;
@@ -519,7 +519,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const auth = getAuth(app);
-  const dbRef = ref(db, 'outsource_filament_app');
 
   const authOverlay = document.getElementById('auth-overlay');
   const authEmailInput = document.getElementById('auth-email');
@@ -574,11 +573,11 @@
   let draggedColIndex = null;
   let draggedRowIndex = null;
   let isCloudLoaded = false;
+  let userDbRef = null;
 
   const logoEl = document.getElementById('app-logo');
   const syncIndicator = document.getElementById('sync-indicator');
 
-  // 時間格式化工具
   function getCurrentFormattedTime() {
     const now = new Date();
     const yyyy = now.getFullYear();
@@ -627,15 +626,16 @@
       authOverlay.style.display = "none";
       userDisplay.textContent = user.email;
       logoutBtn.style.display = "inline-block";
+      userDbRef = ref(db, 'users/' + user.uid + '/outsource_filament_app');
       initCloudSync();
     } else {
       authOverlay.style.display = "flex";
       userDisplay.textContent = "";
       logoutBtn.style.display = "none";
+      userDbRef = null;
     }
   });
 
-  // 先讀取本地快取顯示
   const cachedData = localStorage.getItem('filament_app_data');
   if (cachedData) {
     try {
@@ -652,9 +652,9 @@
     }
   };
 
-  // 雲端監聽：登入後啟動
   function initCloudSync() {
-    onValue(dbRef, (snapshot) => {
+    if (!userDbRef) return;
+    onValue(userDbRef, (snapshot) => {
       const data = snapshot.val();
       if (data && data.workbook && data.workbook.length > 0) {
         appState = data;
@@ -669,7 +669,7 @@
         renderApp();
       } else if (!data) {
         appState.lastUpdated = getCurrentFormattedTime();
-        set(dbRef, appState);
+        set(userDbRef, appState);
         isCloudLoaded = true;
         renderApp();
       }
@@ -683,7 +683,6 @@
     syncIndicator.textContent = `● 最後更新: ${timeStr}`;
   }
 
-  // 安全的細粒度保存
   function saveData(sheetIndex = null, rowIndex = null) {
     const timeNow = getCurrentFormattedTime();
     appState.lastUpdated = timeNow;
@@ -691,11 +690,11 @@
     localStorage.setItem('filament_app_data', JSON.stringify(appState));
     renderApp();
 
-    if (!isCloudLoaded || !auth.currentUser) return;
+    if (!isCloudLoaded || !auth.currentUser || !userDbRef) return;
 
     if (sheetIndex !== null && rowIndex !== null) {
-      const rowPath = `outsource_filament_app/workbook/${sheetIndex}/data/${rowIndex}`;
-      const timePath = `outsource_filament_app/lastUpdated`;
+      const rowPath = `users/${auth.currentUser.uid}/outsource_filament_app/workbook/${sheetIndex}/data/${rowIndex}`;
+      const timePath = `users/${auth.currentUser.uid}/outsource_filament_app/lastUpdated`;
       const rowData = appState.workbook[sheetIndex].data[rowIndex];
       
       const updates = {};
@@ -704,9 +703,9 @@
       update(ref(db), updates).catch(err => console.error("局部更新失敗", err));
     } else {
       update(ref(db), {
-        "outsource_filament_app/logoUrl": appState.logoUrl,
-        "outsource_filament_app/lastUpdated": timeNow,
-        "outsource_filament_app/workbook": appState.workbook
+        [`users/${auth.currentUser.uid}/outsource_filament_app/logoUrl`]: appState.logoUrl,
+        [`users/${auth.currentUser.uid}/outsource_filament_app/lastUpdated`]: timeNow,
+        [`users/${auth.currentUser.uid}/outsource_filament_app/workbook`]: appState.workbook
       }).catch(err => console.error("雲端同步失敗", err));
     }
   }
@@ -742,7 +741,7 @@
   window.switchTab = (tabId) => {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    if (event) event.target.classList.add('active');
+    if (window.event) window.event.target.classList.add('active');
     document.getElementById(tabId).classList.add('active');
   };
 
@@ -1051,7 +1050,7 @@
     saveData();
   };
 
-  // 匯出 Excel 功能修正
+  // 匯出 Excel 功能
   document.getElementById('export-excel-btn').onclick = async () => {
     const sheet = getActiveSheet();
     if (!sheet || !sheet.data || sheet.data.length === 0) {
@@ -1069,73 +1068,61 @@
     }));
 
     sheet.data.forEach(row => {
-      const rowData = {};
-      sheet.columns.forEach(col => {
-        rowData[col.key] = row[col.key] !== undefined ? row[col.key] : "";
-      });
-      worksheet.addRow(rowData);
+      worksheet.addRow(row);
     });
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `${sheet.name}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `${sheet.name || 'export'}.xlsx`;
     a.click();
-    window.URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
   };
 
   // 匯入 Excel 功能
   const excelFileInput = document.getElementById('excel-file-input');
-  document.getElementById('import-excel-btn').onclick = () => {
-    excelFileInput.click();
-  };
+  document.getElementById('import-excel-btn').onclick = () => excelFileInput.click();
 
   excelFileInput.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const workbook = new ExcelJS.Workbook();
-    const arrayBuffer = await file.arrayBuffer();
-    await workbook.xlsx.load(arrayBuffer);
-
+    await workbook.xlsx.load(file);
     const worksheet = workbook.worksheets[0];
+
     if (!worksheet) {
-      alert("找不到有效的 WorkSheet！");
+      alert("無法讀取 Excel 檔案內容！");
       return;
     }
 
     const newColumns = [];
-    const newData = [];
-
-    // 讀取表頭 (第一列)
     const headerRow = worksheet.getRow(1);
     headerRow.eachCell((cell, colNumber) => {
       newColumns.push({
         key: `col_${colNumber}`,
-        label: String(cell.value || `欄位 ${colNumber}`),
+        label: cell.value ? String(cell.value) : `欄位 ${colNumber}`,
         isSystem: false
       });
     });
 
-    // 讀取資料內容
+    const newData = [];
     worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // 跳過標題列
-      const rowData = {};
+      if (rowNumber === 1) return;
+      const rowObj = {};
       newColumns.forEach((col, idx) => {
         const cellValue = row.getCell(idx + 1).value;
-        rowData[col.key] = cellValue !== null && cellValue !== undefined ? String(cellValue) : "-";
+        rowObj[col.key] = cellValue !== null && cellValue !== undefined ? String(cellValue) : "-";
       });
-      newData.push(rowData);
+      newData.push(rowObj);
     });
 
     const sheet = getActiveSheet();
     sheet.columns = newColumns;
     sheet.data = newData;
     saveData();
-
-    alert("Excel 檔案匯入成功！");
     excelFileInput.value = "";
   };
   </script>

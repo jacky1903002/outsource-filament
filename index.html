@@ -1051,6 +1051,7 @@
     saveData();
   };
 
+  // 匯出 Excel 功能修正
   document.getElementById('export-excel-btn').onclick = async () => {
     const sheet = getActiveSheet();
     if (!sheet || !sheet.data || sheet.data.length === 0) {
@@ -1064,42 +1065,29 @@
     worksheet.columns = sheet.columns.map(col => ({
       header: col.label,
       key: col.key,
-      width: 22
+      width: 20
     }));
 
     sheet.data.forEach(row => {
       const rowData = {};
       sheet.columns.forEach(col => {
-        let val = row[col.key] !== undefined ? row[col.key] : "";
-        if (isImageUrl(val)) {
-          rowData[col.key] = { formula: `IMAGE("${val}")` };
-        } else {
-          rowData[col.key] = val;
-        }
+        rowData[col.key] = row[col.key] !== undefined ? row[col.key] : "";
       });
       worksheet.addRow(rowData);
     });
 
-    const headerRow = worksheet.getRow(1);
-    headerRow.font = { bold: true, color: { argb: 'FFFFFF' } };
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: '0F172A' }
-    };
-
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${sheet.name || 'Export'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `${sheet.name}_${new Date().toISOString().slice(0, 10)}.xlsx`;
     a.click();
-    URL.revokeObjectURL(url);
+    window.URL.revokeObjectURL(url);
   };
 
+  // 匯入 Excel 功能
   const excelFileInput = document.getElementById('excel-file-input');
-
   document.getElementById('import-excel-btn').onclick = () => {
     excelFileInput.click();
   };
@@ -1108,69 +1096,48 @@
     const file = e.target.files[0];
     if (!file) return;
 
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(arrayBuffer);
+    const workbook = new ExcelJS.Workbook();
+    const arrayBuffer = await file.arrayBuffer();
+    await workbook.xlsx.load(arrayBuffer);
 
-      const worksheet = workbook.worksheets[0];
-      if (!worksheet) {
-        alert("Excel 檔案內無有效的工作表！");
-        return;
-      }
-
-      const newColumns = [];
-      const headerRow = worksheet.getRow(1);
-      
-      headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
-        const label = String(cell.value || '').trim();
-        const key = `col_${colNumber}_${Date.now()}`;
-        newColumns.push({ key, label, isSystem: false });
-      });
-
-      if (newColumns.length === 0) {
-        alert("未能在 Excel 第一列找到有效的標頭欄位！");
-        return;
-      }
-
-      const newData = [];
-      worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-        if (rowNumber === 1) return;
-
-        const rowObj = {};
-        newColumns.forEach((col, cIdx) => {
-          const cell = row.getCell(cIdx + 1);
-          let val = cell.value;
-
-          if (cell.formula) {
-            const match = cell.formula.match(/IMAGE\("([^"]+)"\)/i);
-            if (match && match[1]) {
-              val = match[1];
-            }
-          } else if (typeof val === 'object' && val !== null) {
-            val = val.result !== undefined ? val.result : (val.text || '');
-          }
-
-          rowObj[col.key] = val !== null && val !== undefined ? String(val).trim() : "-";
-        });
-
-        newData.push(rowObj);
-      });
-
-      const currentSheet = getActiveSheet();
-      currentSheet.columns = newColumns;
-      currentSheet.data = newData;
-
-      saveData();
-      alert("Excel 資料匯入成功！");
-
-    } catch (err) {
-      console.error("Excel 匯入解析失敗：", err);
-      alert("匯入失敗，請確認檔案格式是否為正確的 Excel (.xlsx) 檔案。");
-    } finally {
-      excelFileInput.value = '';
+    const worksheet = workbook.worksheets[0];
+    if (!worksheet) {
+      alert("找不到有效的 WorkSheet！");
+      return;
     }
+
+    const newColumns = [];
+    const newData = [];
+
+    // 讀取表頭 (第一列)
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell, colNumber) => {
+      newColumns.push({
+        key: `col_${colNumber}`,
+        label: String(cell.value || `欄位 ${colNumber}`),
+        isSystem: false
+      });
+    });
+
+    // 讀取資料內容
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // 跳過標題列
+      const rowData = {};
+      newColumns.forEach((col, idx) => {
+        const cellValue = row.getCell(idx + 1).value;
+        rowData[col.key] = cellValue !== null && cellValue !== undefined ? String(cellValue) : "-";
+      });
+      newData.push(rowData);
+    });
+
+    const sheet = getActiveSheet();
+    sheet.columns = newColumns;
+    sheet.data = newData;
+    saveData();
+
+    alert("Excel 檔案匯入成功！");
+    excelFileInput.value = "";
   };
-</script>
+  </script>
 </body>
 </html>

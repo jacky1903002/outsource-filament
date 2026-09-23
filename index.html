@@ -504,7 +504,9 @@
     signOut, 
     onAuthStateChanged 
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
+  // 您提供的 Firebase Config 配置
   const firebaseConfig = {
     apiKey: "AIzaSyDrRzvbrpq87mDlHE8vpoAfWxwNS5aOV2E",
     authDomain: "outsourcefilament.firebaseapp.com",
@@ -516,7 +518,9 @@
     measurementId: "G-5M1XTD79JT"
   };
 
+  // 初始化 Firebase
   const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
   const db = getDatabase(app);
   const auth = getAuth(app);
 
@@ -543,7 +547,6 @@
     { sku: "FVSE-0036-4", itemNo: "10091-VWNE000", purchaseNo: "50001-111" },
     { sku: "FVSE-0525-4", itemNo: "10021-VWNE000", purchaseNo: "50001-112" },
     { sku: "FVSE-0032-4", itemNo: "14967-VWNE001", purchaseNo: "50001-113" },
-    { sku: "FVSE-0068", itemNo: "10014-VWTE000", purchaseNo: "50001-114" },
     { sku: "FV80-0433", itemNo: "10207-FWTE000", purchaseNo: "50001-115" }
   ];
 
@@ -1059,7 +1062,7 @@
     }
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet(sheet.name || "Data");
+    const worksheet = workbook.addWorksheet(sheet.name);
 
     worksheet.columns = sheet.columns.map(col => ({
       header: col.label,
@@ -1076,54 +1079,73 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${sheet.name || 'export'}.xlsx`;
+    a.download = `${sheet.name}_${new Date().toISOString().slice(0, 10)}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   // 匯入 Excel 功能
   const excelFileInput = document.getElementById('excel-file-input');
-  document.getElementById('import-excel-btn').onclick = () => excelFileInput.click();
+  document.getElementById('import-excel-btn').onclick = () => {
+    excelFileInput.click();
+  };
 
   excelFileInput.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(file);
-    const worksheet = workbook.worksheets[0];
+    const reader = new FileReader();
 
-    if (!worksheet) {
-      alert("無法讀取 Excel 檔案內容！");
-      return;
-    }
+    reader.onload = async (event) => {
+      try {
+        const buffer = event.target.result;
+        await workbook.xlsx.load(buffer);
+        const worksheet = workbook.worksheets[0];
 
-    const newColumns = [];
-    const headerRow = worksheet.getRow(1);
-    headerRow.eachCell((cell, colNumber) => {
-      newColumns.push({
-        key: `col_${colNumber}`,
-        label: cell.value ? String(cell.value) : `欄位 ${colNumber}`,
-        isSystem: false
-      });
-    });
+        if (!worksheet) {
+          alert("讀取 Excel 內容失敗！");
+          return;
+        }
 
-    const newData = [];
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return;
-      const rowObj = {};
-      newColumns.forEach((col, idx) => {
-        const cellValue = row.getCell(idx + 1).value;
-        rowObj[col.key] = cellValue !== null && cellValue !== undefined ? String(cellValue) : "-";
-      });
-      newData.push(rowObj);
-    });
+        const newColumns = [];
+        const newData = [];
 
-    const sheet = getActiveSheet();
-    sheet.columns = newColumns;
-    sheet.data = newData;
-    saveData();
-    excelFileInput.value = "";
+        const headerRow = worksheet.getRow(1);
+        headerRow.eachCell((cell, colNumber) => {
+          const label = cell.value ? cell.value.toString() : `欄位_${colNumber}`;
+          newColumns.push({
+            key: `col_${colNumber}`,
+            label: label,
+            isSystem: false
+          });
+        });
+
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) return;
+          const rowData = {};
+          newColumns.forEach((col, index) => {
+            const cellValue = row.getCell(index + 1).value;
+            rowData[col.key] = cellValue !== null && cellValue !== undefined ? cellValue : "";
+          });
+          newData.push(rowData);
+        });
+
+        const sheet = getActiveSheet();
+        sheet.columns = newColumns;
+        sheet.data = newData;
+
+        saveData();
+        alert("成功匯入 Excel 資料！");
+      } catch (err) {
+        console.error("解析 Excel 失敗：", err);
+        alert("匯入失敗，請確認檔案格式是否正確。");
+      } finally {
+        excelFileInput.value = "";
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
   };
   </script>
 </body>

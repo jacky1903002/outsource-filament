@@ -6,6 +6,8 @@
   <title>Filament Outsource Tracing - Cloud Version</title>
   <!-- 引入 ExcelJS 套件以支援 Excel 匯入與匯出 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <!-- 引入 html2pdf.js 套件以支援 PDF 匯入與匯出 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --bg-color: #0b1329;
@@ -468,6 +470,9 @@
 
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('tracker-tab')">專案進度追蹤表</button>
+      <button class="btn btn-primary" onclick="exportCurrentSheetPDF()">
+  <i class="fa-solid fa-file-pdf"></i> 一鍵匯出 PDF
+</button>
     </div>
 
     <div class="sheet-bar">
@@ -493,7 +498,35 @@
       </div>
     </div>
   </div>
+// 一鍵匯出目前工作表為 PDF
+window.exportCurrentSheetPDF = function() {
+  const currentSheet = window.sheets.find(s => s.id === window.activeSheetId);
+  const sheetName = currentSheet ? currentSheet.name : "工作表";
+  
+  // 取得包含表格與圖表的父容器元素（請確保該容器有對應的 ID，例如 id="main-content-area"）
+  const element = document.getElementById('main-content-area') || document.querySelector('.main-container');
 
+  if (!element) {
+    alert("找不到可匯出的畫面範圍！");
+    return;
+  }
+
+  const opt = {
+    margin:       10,
+    filename:     `${sheetName}_報表_${new Date().toISOString().slice(0,10)}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' } // 橫向 A4 適合報表與圖表
+  };
+
+  // 執行匯出
+  html2pdf().from(element).set(opt).save().then(() => {
+    console.log("PDF 匯出成功！");
+  }).catch(err => {
+    console.error("PDF 匯出失敗：", err);
+    alert("匯出 PDF 發生錯誤，請稍後再試！");
+  });
+};
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";

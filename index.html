@@ -498,25 +498,24 @@
       </div>
     </div>
   </div>
-// 一鍵匯出目前工作表為 PDF
-window.exportCurrentSheetPDF = function() {
-  const currentSheet = window.sheets.find(s => s.id === window.activeSheetId);
-  const sheetName = currentSheet ? currentSheet.name : "工作表";
+// 📄 一鍵匯出 PDF 功能（修復版：確保全域呼叫與正確抓取範圍）
+document.getElementById('export-pdf-btn').onclick = () => {
+  const sheet = getActiveSheet();
   
-  // 取得包含表格與圖表的父容器元素（請確保該容器有對應的 ID，例如 id="main-content-area"）
-  const element = document.getElementById('main-content-area') || document.querySelector('.main-container');
+  // 自動抓取當前表格的捲動容器作為匯出範圍
+  const element = document.getElementById('pdf-export-area');
 
   if (!element) {
-    alert("找不到可匯出的畫面範圍！");
+    alert("找不到可匯出的表格區域！");
     return;
   }
 
   const opt = {
     margin:       10,
-    filename:     `${sheetName}_報表_${new Date().toISOString().slice(0,10)}.pdf`,
+    filename:     `${sheet.name}_報表_${new Date().toISOString().slice(0,10)}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2, useCORS: true, logging: false },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' } // 橫向 A4 適合報表與圖表
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' } // 橫向 A4 適合寬表格
   };
 
   // 執行匯出

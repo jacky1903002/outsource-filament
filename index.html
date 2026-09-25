@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Filament Outsource Tracing - Cloud Version</title>
-  <!-- 引入 ExcelJS 套件以支援 Excel 匯入與匯出 -->
+  <!-- 引入 ExcelJS 套件 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-  <!-- 引入 html2pdf.js 套件以支援 PDF 匯入與匯出 -->
+  <!-- 引入 html2pdf.js 套件 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
@@ -148,10 +148,6 @@
       transition: border-color 0.2s;
     }
 
-    .brand-logo:hover {
-      border-color: var(--accent);
-    }
-
     .badge-pro {
       background: linear-gradient(135deg, #0284c7, #6366f1);
       color: #fff;
@@ -202,25 +198,6 @@
       align-items: center;
     }
 
-    .tab-btn {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-      padding: 8px 20px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active {
-      background: #0284c7;
-      color: #fff;
-      border-color: #38bdf8;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
-    }
-
     .sheet-bar {
       display: flex;
       align-items: center;
@@ -249,20 +226,11 @@
       user-select: none;
     }
 
-    .sheet-tab:active { cursor: grabbing; }
-
     .sheet-tab.active {
       background: #0284c7;
       color: #fff;
       border-color: #38bdf8;
     }
-
-    .sheet-close {
-      font-size: 0.75rem;
-      opacity: 0.7;
-      cursor: pointer;
-    }
-    .sheet-close:hover { opacity: 1; color: #f87171; }
 
     .tab-content {
       display: none;
@@ -328,15 +296,6 @@
       user-select: none;
     }
 
-    .del-col-btn {
-      margin-left: 6px;
-      color: var(--danger);
-      cursor: pointer;
-      font-size: 0.75rem;
-      opacity: 0.7;
-    }
-    .del-col-btn:hover { opacity: 1; }
-
     td {
       padding: 9px 16px;
       border-bottom: 1px solid var(--border-color);
@@ -379,35 +338,6 @@
       min-width: 38px;
       text-align: right;
     }
-
-    .status-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-    .status-done { background: rgba(52, 211, 153, 0.15); color: var(--success); border: 1px solid var(--success); }
-    .status-doing { background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid var(--accent); }
-    .status-todo { background: rgba(251, 191, 36, 0.15); color: var(--warning); border: 1px solid var(--warning); }
-
-    .editable { cursor: pointer; }
-    .editable:hover {
-      background-color: rgba(56, 189, 248, 0.15) !important;
-      outline: 1px dashed var(--accent);
-    }
-
-    .action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; }
-    .action-btn:hover { color: var(--danger); }
-
-    .table-img-preview {
-      max-width: 48px;
-      max-height: 48px;
-      object-fit: contain;
-      border-radius: 4px;
-      border: 1px solid var(--border-color);
-      background: #0f172a;
-    }
   </style>
 </head>
 <body>
@@ -435,7 +365,7 @@
   <div class="app-container">
     <header>
       <div class="brand-title">
-        <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo" title="雙擊可更改圖片網址">
+        <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo">
         <div>
           <span class="badge-pro">CLOUD ENTERPRISE</span>
           <span id="sync-indicator" class="sync-status">● 最後更新: 無紀錄</span>
@@ -450,7 +380,6 @@
 
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('tracker-tab')">專案進度追蹤表</button>
-      <!-- 修正按鈕事件綁定名稱 -->
       <button id="export-pdf-btn" class="btn btn-primary">一鍵匯出 PDF</button>
     </div>
 
@@ -468,7 +397,7 @@
         <button id="import-excel-btn" class="btn">匯入 Excel</button>
         <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;">
       </div>
-      <!-- 加上 id="pdf-export-area" 讓 html2pdf 能夠準確抓取範圍 -->
+      <!-- 匯出範圍區塊 -->
       <div class="table-scroll-container" id="pdf-export-area">
         <table>
           <thead id="table-head"></thead>
@@ -480,7 +409,7 @@
 
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
   import { 
     getAuth, 
     signInWithEmailAndPassword, 
@@ -740,7 +669,7 @@
     document.getElementById(tabId).classList.add('active');
   };
 
-  // 📄 一鍵匯出 PDF 功能（正確放置於模組內並綁定按鈕）
+  // 📄 一鍵匯出 PDF 功能（自動套用高對比深色字體，確保清晰可見）
   document.getElementById('export-pdf-btn').onclick = () => {
     const sheet = getActiveSheet();
     const element = document.getElementById('pdf-export-area');
@@ -749,6 +678,15 @@
       alert("找不到可匯出的表格區域！");
       return;
     }
+
+    // 暫時替換區塊樣式以適應清晰的 PDF 輸出（文字加深為黑色與深灰色）
+    element.style.color = "#111827";
+    element.style.backgroundColor = "#ffffff";
+    const cells = element.querySelectorAll('td, th');
+    cells.forEach(c => {
+      c.style.color = "#111827";
+      c.style.borderColor = "#cbd5e1";
+    });
 
     const opt = {
       margin:       10,
@@ -759,8 +697,21 @@
     };
 
     html2pdf().from(element).set(opt).save().then(() => {
+      // 匯出完成後恢復原畫面深色樣式
+      element.style.color = "";
+      element.style.backgroundColor = "";
+      cells.forEach(c => {
+        c.style.color = "";
+        c.style.borderColor = "";
+      });
       console.log("PDF 匯出成功！");
     }).catch(err => {
+      element.style.color = "";
+      element.style.backgroundColor = "";
+      cells.forEach(c => {
+        c.style.color = "";
+        c.style.borderColor = "";
+      });
       console.error("PDF 匯出失敗：", err);
       alert("匯出 PDF 發生錯誤，請稍後再試！");
     });

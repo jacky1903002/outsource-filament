@@ -4,10 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Filament Outsource Tracing - Cloud Version</title>
-  <!-- 引入 ExcelJS 套件 -->
+  <!-- 引入 ExcelJS 套件以支援 Excel 匯入與匯出 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-  <!-- 引入 html2pdf.js 套件 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --bg-color: #0b1329;
@@ -148,6 +146,10 @@
       transition: border-color 0.2s;
     }
 
+    .brand-logo:hover {
+      border-color: var(--accent);
+    }
+
     .badge-pro {
       background: linear-gradient(135deg, #0284c7, #6366f1);
       color: #fff;
@@ -195,7 +197,25 @@
       gap: 8px;
       margin-bottom: 12px;
       flex-shrink: 0;
-      align-items: center;
+    }
+
+    .tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: #0284c7;
+      color: #fff;
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
     }
 
     .sheet-bar {
@@ -226,11 +246,20 @@
       user-select: none;
     }
 
+    .sheet-tab:active { cursor: grabbing; }
+
     .sheet-tab.active {
       background: #0284c7;
       color: #fff;
       border-color: #38bdf8;
     }
+
+    .sheet-close {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      cursor: pointer;
+    }
+    .sheet-close:hover { opacity: 1; color: #f87171; }
 
     .tab-content {
       display: none;
@@ -296,6 +325,36 @@
       user-select: none;
     }
 
+    th[draggable="true"] { cursor: grab; }
+    th[draggable="true"]:active { cursor: grabbing; }
+
+    .drag-handle {
+      cursor: grab;
+      color: var(--text-muted);
+      margin-right: 8px;
+      font-weight: bold;
+    }
+    .drag-handle:active { cursor: grabbing; }
+
+    tr.drag-over-row {
+      border-top: 2px solid var(--accent) !important;
+      background-color: rgba(56, 189, 248, 0.08) !important;
+    }
+
+    th.drag-over-col {
+      border-left: 3px solid var(--accent) !important;
+      background-color: #334155 !important;
+    }
+
+    .del-col-btn {
+      margin-left: 6px;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+    .del-col-btn:hover { opacity: 1; }
+
     td {
       padding: 9px 16px;
       border-bottom: 1px solid var(--border-color);
@@ -338,6 +397,35 @@
       min-width: 38px;
       text-align: right;
     }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .status-done { background: rgba(52, 211, 153, 0.15); color: var(--success); border: 1px solid var(--success); }
+    .status-doing { background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid var(--accent); }
+    .status-todo { background: rgba(251, 191, 36, 0.15); color: var(--warning); border: 1px solid var(--warning); }
+
+    .editable { cursor: pointer; }
+    .editable:hover {
+      background-color: rgba(56, 189, 248, 0.15) !important;
+      outline: 1px dashed var(--accent);
+    }
+
+    .action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; }
+    .action-btn:hover { color: var(--danger); }
+
+    .table-img-preview {
+      max-width: 48px;
+      max-height: 48px;
+      object-fit: contain;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: #0f172a;
+    }
   </style>
 </head>
 <body>
@@ -365,7 +453,7 @@
   <div class="app-container">
     <header>
       <div class="brand-title">
-        <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo">
+        <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo" title="雙擊可更改圖片網址">
         <div>
           <span class="badge-pro">CLOUD ENTERPRISE</span>
           <span id="sync-indicator" class="sync-status">● 最後更新: 無紀錄</span>
@@ -380,7 +468,6 @@
 
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('tracker-tab')">專案進度追蹤表</button>
-      <button id="export-pdf-btn" class="btn btn-primary">一鍵匯出 PDF</button>
     </div>
 
     <div class="sheet-bar">
@@ -393,12 +480,12 @@
       <div class="toolbar">
         <button id="add-row-btn" class="btn btn-primary">新增列</button>
         <button id="add-col-btn" class="btn btn-primary">新增自訂欄位</button>
+        
         <button id="export-excel-btn" class="btn">匯出 Excel</button>
         <button id="import-excel-btn" class="btn">匯入 Excel</button>
         <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;">
       </div>
-      <!-- 匯出範圍區塊 -->
-      <div class="table-scroll-container" id="pdf-export-area">
+      <div class="table-scroll-container">
         <table>
           <thead id="table-head"></thead>
           <tbody id="table-body"></tbody>
@@ -407,319 +494,6 @@
     </div>
   </div>
 
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-  import { 
-    getAuth, 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    signOut, 
-    onAuthStateChanged 
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDrRzvbrpq87mDlHE8vpoAfWxwNS5aOV2E",
-    authDomain: "outsourcefilament.firebaseapp.com",
-    databaseURL: "https://outsourcefilament-default-rtdb.firebaseio.com",
-    projectId: "outsourcefilament",
-    storageBucket: "outsourcefilament.firebasestorage.app",
-    messagingSenderId: "2490212071",
-    appId: "1:2490212071:web:e7dd49a11c32ee4edfcc42",
-    measurementId: "G-5M1XTD79JT"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getDatabase(app);
-  const auth = getAuth(app);
-
-  const authOverlay = document.getElementById('auth-overlay');
-  const authEmailInput = document.getElementById('auth-email');
-  const authPasswordInput = document.getElementById('auth-password');
-  const authError = document.getElementById('auth-error');
-  const loginBtn = document.getElementById('login-btn');
-  const registerBtn = document.getElementById('register-btn');
-  const userDisplay = document.getElementById('user-display');
-  const logoutBtn = document.getElementById('logout-btn');
-
-  const ADMIN_EMAIL = "n1693131@gmail.com";
-  let isEditable = false;
-
-  const defaultColumns = [
-    { key: "itemNo", label: "品號", isSystem: false },
-    { key: "sku", label: "貨號", isSystem: false },
-    { key: "purchaseNo", label: "採購料號", isSystem: false },
-    { key: "startDate", label: "開始日期", isSystem: false },
-    { key: "endDate", label: "結束日期", isSystem: false },
-    { key: "progress", label: "進度 (%)", isSystem: false },
-    { key: "status", label: "狀態", isSystem: false }
-  ];
-
-  const imgData = [
-    { sku: "FVSE-0036-4", itemNo: "10091-VWNE000", purchaseNo: "50001-111" },
-    { sku: "FVSE-0525-4", itemNo: "10021-VWNE000", purchaseNo: "50001-112" },
-    { sku: "FVSE-0032-4", itemNo: "14967-VWNE001", purchaseNo: "50001-113" },
-    { sku: "FV80-0433", itemNo: "10207-FWTE000", purchaseNo: "50001-115" }
-  ];
-
-  const initialData = imgData.map(item => ({
-    itemNo: item.itemNo,
-    sku: item.sku,
-    purchaseNo: item.purchaseNo,
-    startDate: "2026-03-01",
-    endDate: "2026-03-15",
-    progress: 35,
-    status: "進行中"
-  }));
-
-  const defaultLogo = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>";
-
-  let appState = {
-    logoUrl: defaultLogo,
-    lastUpdated: "",
-    workbook: [
-      { id: "sheet_1", name: "工程及製造追蹤項目", columns: defaultColumns, data: initialData },
-      { id: "sheet_2", name: "採購追蹤項目", columns: defaultColumns, data: [] },
-      { id: "sheet_3", name: "品保追蹤項目", columns: defaultColumns, data: [] }
-    ]
-  };
-
-  let activeSheetId = "sheet_1";
-  let isCloudLoaded = false;
-  let userDbRef = ref(db, 'shared_app_data/outsource_filament_app');
-
-  const logoEl = document.getElementById('app-logo');
-  const syncIndicator = document.getElementById('sync-indicator');
-
-  function getCurrentFormattedTime() {
-    const now = new Date();
-    return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ` +
-           `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-  }
-
-  function getActiveSheet() {
-    return appState.workbook.find(s => s.id === activeSheetId) || appState.workbook[0];
-  }
-
-  loginBtn.onclick = () => {
-    const email = authEmailInput.value.trim();
-    const password = authPasswordInput.value.trim();
-    if (!email || !password) { authError.textContent = "請輸入 Email 與密碼"; return; }
-    signInWithEmailAndPassword(auth, email, password)
-      .then(() => { authError.textContent = ""; })
-      .catch((err) => { authError.textContent = "登入失敗：" + err.message; });
-  };
-
-  registerBtn.onclick = () => {
-    const email = authEmailInput.value.trim();
-    const password = authPasswordInput.value.trim();
-    if (!email || !password) { authError.textContent = "請輸入 Email 與密碼"; return; }
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(() => { authError.textContent = ""; alert("註冊成功並已自動登入！"); })
-      .catch((err) => { authError.textContent = "註冊失敗：" + err.message; });
-  };
-
-  logoutBtn.onclick = () => {
-    signOut(auth).then(() => { alert("已成功登出"); });
-  };
-
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      authOverlay.style.display = "none";
-      userDisplay.textContent = user.email;
-      logoutBtn.style.display = "inline-block";
-      isEditable = (user.email === ADMIN_EMAIL);
-      toggleEditingControls();
-      initCloudSync();
-    } else {
-      authOverlay.style.display = "flex";
-      userDisplay.textContent = "";
-      logoutBtn.style.display = "none";
-      isEditable = false;
-      toggleEditingControls();
-    }
-  });
-
-  function toggleEditingControls() {
-    const displayVal = isEditable ? "inline-block" : "none";
-    document.getElementById('add-row-btn').style.display = displayVal;
-    document.getElementById('add-col-btn').style.display = displayVal;
-    document.getElementById('import-excel-btn').style.display = displayVal;
-    document.getElementById('add-sheet-btn').style.display = displayVal;
-    document.getElementById('copy-sheet-btn').style.display = displayVal;
-  }
-
-  const cachedData = localStorage.getItem('filament_app_data');
-  if (cachedData) {
-    try { appState = JSON.parse(cachedData); } catch(e) { console.error(e); }
-  }
-  renderApp();
-
-  function initCloudSync() {
-    onValue(userDbRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data && data.workbook && data.workbook.length > 0) {
-        appState = data;
-        if (!appState.logoUrl) appState.logoUrl = defaultLogo;
-        if (!appState.workbook.find(s => s.id === activeSheetId)) {
-          activeSheetId = appState.workbook[0].id;
-        }
-        localStorage.setItem('filament_app_data', JSON.stringify(appState));
-        isCloudLoaded = true;
-        renderApp();
-      } else if (!data) {
-        appState.lastUpdated = getCurrentFormattedTime();
-        set(userDbRef, appState);
-        isCloudLoaded = true;
-        renderApp();
-      }
-    });
-  }
-
-  function saveData() {
-    if (!isEditable) return;
-    appState.lastUpdated = getCurrentFormattedTime();
-    localStorage.setItem('filament_app_data', JSON.stringify(appState));
-    renderApp();
-    if (isCloudLoaded && auth.currentUser) {
-      set(userDbRef, appState).catch(err => console.error("雲端同步失敗", err));
-    }
-  }
-
-  function renderApp() {
-    logoEl.src = appState.logoUrl || defaultLogo;
-    syncIndicator.textContent = `● 最後更新: ${appState.lastUpdated || "無紀錄"}`;
-    renderSheets();
-    renderTable();
-  }
-
-  function renderSheets() {
-    const sheetsContainer = document.getElementById('sheets-container');
-    sheetsContainer.innerHTML = '';
-    appState.workbook.forEach((sheet) => {
-      const tab = document.createElement('div');
-      tab.className = `sheet-tab ${sheet.id === activeSheetId ? 'active' : ''}`;
-      tab.innerHTML = `<span>${sheet.name}</span>`;
-      tab.onclick = () => { activeSheetId = sheet.id; renderApp(); };
-      sheetsContainer.appendChild(tab);
-    });
-  }
-
-  function renderTable() {
-    const sheet = getActiveSheet();
-    if (!sheet || !sheet.data) return;
-
-    const thead = document.getElementById('table-head');
-    const tbody = document.getElementById('table-body');
-
-    let trHeadHtml = '<tr>';
-    if (isEditable) trHeadHtml += '<th style="width: 40px; text-align: center;">≡</th>';
-    sheet.columns.forEach((col) => {
-      trHeadHtml += `<th>${col.label}</th>`;
-    });
-    if (isEditable) trHeadHtml += '<th style="width: 80px; text-align: center;">操作</th>';
-    trHeadHtml += '</tr>';
-    thead.innerHTML = trHeadHtml;
-
-    tbody.innerHTML = '';
-    sheet.data.forEach((row, index) => {
-      const tr = document.createElement('tr');
-      let trBodyHtml = '';
-      if (isEditable) trBodyHtml += `<td style="text-align: center; color: var(--text-muted);">⠿</td>`;
-      
-      sheet.columns.forEach(col => {
-        let val = row[col.key] !== undefined ? row[col.key] : '-';
-        if (col.key === 'progress' || (col.label && col.label.includes('進度'))) {
-          const numVal = Math.min(100, Math.max(0, parseInt(val) || 0));
-          trBodyHtml += `
-            <td>
-              <div class="progress-container">
-                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${numVal}%;"></div></div>
-                <span class="progress-text">${numVal}%</span>
-              </div>
-            </td>`;
-        } else {
-          trBodyHtml += `<td>${val}</td>`;
-        }
-      });
-
-      if (isEditable) {
-        trBodyHtml += `<td style="text-align: center;"><button class="action-btn" onclick="deleteRow(${index})">刪除</button></td>`;
-      }
-      tr.innerHTML = trBodyHtml;
-      tbody.appendChild(tr);
-    });
-  }
-
-  window.deleteRow = (index) => {
-    if (!isEditable) return;
-    const sheet = getActiveSheet();
-    if (confirm("確定要刪除這筆資料嗎？")) {
-      sheet.data.splice(index, 1);
-      saveData();
-    }
-  };
-
-  window.switchTab = (tabId) => {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    if (window.event) window.event.target.classList.add('active');
-    document.getElementById(tabId).classList.add('active');
-  };
-
-  // 📄 一鍵匯出 PDF 功能（自動套用高對比深色字體，確保清晰可見）
-  document.getElementById('export-pdf-btn').onclick = () => {
-    const sheet = getActiveSheet();
-    const element = document.getElementById('pdf-export-area');
-
-    if (!element) {
-      alert("找不到可匯出的表格區域！");
-      return;
-    }
-
-    // 暫時替換區塊樣式以適應清晰的 PDF 輸出（文字加深為黑色與深灰色）
-    element.style.color = "#111827";
-    element.style.backgroundColor = "#ffffff";
-    const cells = element.querySelectorAll('td, th');
-    cells.forEach(c => {
-      c.style.color = "#111827";
-      c.style.borderColor = "#cbd5e1";
-    });
-
-    const opt = {
-      margin:       10,
-      filename:     `${sheet.name}_報表_${new Date().toISOString().slice(0,10)}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, logging: false },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-    };
-
-    html2pdf().from(element).set(opt).save().then(() => {
-      // 匯出完成後恢復原畫面深色樣式
-      element.style.color = "";
-      element.style.backgroundColor = "";
-      cells.forEach(c => {
-        c.style.color = "";
-        c.style.borderColor = "";
-      });
-      console.log("PDF 匯出成功！");
-    }).catch(err => {
-      element.style.color = "";
-      element.style.backgroundColor = "";
-      cells.forEach(c => {
-        c.style.color = "";
-        c.style.borderColor = "";
-      });
-      console.error("PDF 匯出失敗：", err);
-      alert("匯出 PDF 發生錯誤，請稍後再試！");
-    });
-  };
-
-  </script>
-</body>
-</html>
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";

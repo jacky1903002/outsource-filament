@@ -629,7 +629,7 @@
       authOverlay.style.display = "none";
       userDisplay.textContent = user.email;
       logoutBtn.style.display = "inline-block";
-      userDbRef = ref(db, 'users/' + user.uid + '/outsource_filament_app');
+userDbRef = ref(db, 'shared_app_data/outsource_filament_app');
       initCloudSync();
     } else {
       authOverlay.style.display = "flex";

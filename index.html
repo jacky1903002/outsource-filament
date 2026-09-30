@@ -496,7 +496,7 @@
 
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
   import { 
     getAuth, 
     signInWithEmailAndPassword, 
@@ -629,7 +629,7 @@
       authOverlay.style.display = "none";
       userDisplay.textContent = user.email;
       logoutBtn.style.display = "inline-block";
-userDbRef = ref(db, 'shared_app_data/outsource_filament_app');
+      userDbRef = ref(db, 'shared_app_data/outsource_filament_app');
       initCloudSync();
     } else {
       authOverlay.style.display = "flex";
@@ -660,7 +660,10 @@ userDbRef = ref(db, 'shared_app_data/outsource_filament_app');
     onValue(userDbRef, (snapshot) => {
       const data = snapshot.val();
       if (data && data.workbook && data.workbook.length > 0) {
-        appState = data;
+        // 只有當雲端有資料且初次載入，或雲端時間更新時才覆蓋，避免寫入瞬間被回傳蓋掉
+        if (!isCloudLoaded) {
+          appState = data;
+        }
         if (!appState.logoUrl) appState.logoUrl = defaultLogo;
         
         if (!appState.workbook.find(s => s.id === activeSheetId)) {
@@ -686,30 +689,18 @@ userDbRef = ref(db, 'shared_app_data/outsource_filament_app');
     syncIndicator.textContent = `● 最後更新: ${timeStr}`;
   }
 
-  function saveData(sheetIndex = null, rowIndex = null) {
+  // 統一使用整包資料直接 set 寫入，確保結構完整且 F5 不會遺失
+  function saveData() {
     const timeNow = getCurrentFormattedTime();
     appState.lastUpdated = timeNow;
 
+    // 先存入本地端快取確保畫面即時且重新整理不遺失
     localStorage.setItem('filament_app_data', JSON.stringify(appState));
     renderApp();
 
-    if (!isCloudLoaded || !auth.currentUser || !userDbRef) return;
-
-    if (sheetIndex !== null && rowIndex !== null) {
-      const rowPath = `users/${auth.currentUser.uid}/outsource_filament_app/workbook/${sheetIndex}/data/${rowIndex}`;
-      const timePath = `users/${auth.currentUser.uid}/outsource_filament_app/lastUpdated`;
-      const rowData = appState.workbook[sheetIndex].data[rowIndex];
-      
-      const updates = {};
-      updates[rowPath] = rowData;
-      updates[timePath] = timeNow;
-      update(ref(db), updates).catch(err => console.error("局部更新失敗", err));
-    } else {
-      update(ref(db), {
-        [`users/${auth.currentUser.uid}/outsource_filament_app/logoUrl`]: appState.logoUrl,
-        [`users/${auth.currentUser.uid}/outsource_filament_app/lastUpdated`]: timeNow,
-        [`users/${auth.currentUser.uid}/outsource_filament_app/workbook`]: appState.workbook
-      }).catch(err => console.error("雲端同步失敗", err));
+    // 同步到 Firebase 雲端資料庫
+    if (isCloudLoaded && auth.currentUser && userDbRef) {
+      set(userDbRef, appState).catch(err => console.error("雲端同步失敗", err));
     }
   }
 
@@ -992,7 +983,7 @@ userDbRef = ref(db, 'shared_app_data/outsource_filament_app');
       } else {
         sheet.data[index][key] = newVal.trim();
       }
-      saveData(getActiveSheetIndex(), index);
+      saveData();
     }
   }
 
@@ -1014,7 +1005,7 @@ userDbRef = ref(db, 'shared_app_data/outsource_filament_app');
             if (isProgressCol(col)) sheet.data[index][col.key] = 100;
           });
         }
-        saveData(getActiveSheetIndex(), index);
+        saveData();
       }
     }
   }

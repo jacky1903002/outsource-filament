@@ -8,16 +8,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <style>
     :root {
-      --bg-color: #0b1329;
-      --card-bg: #1e293b;
-      --border-color: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #38bdf8;
-      --accent-hover: #0284c7;
-      --success: #34d399;
-      --warning: #fbbf24;
-      --danger: #ef4444;
+      --bg-color: #ffffff;
+      --card-bg: #f8fafc;
+      --border-color: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #334155;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
     }
 
     * { box-sizing: border-box; }
@@ -39,7 +39,8 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(11, 19, 41, 0.95);
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(4px);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -47,12 +48,12 @@
     }
 
     .auth-card {
-      background: var(--card-bg);
+      background: #ffffff;
       border: 1px solid var(--border-color);
       padding: 32px;
       border-radius: 12px;
       width: 360px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -63,6 +64,7 @@
       color: var(--accent);
       text-align: center;
       font-size: 1.5rem;
+      font-weight: 800;
     }
 
     .auth-input-group {
@@ -74,16 +76,18 @@
     .auth-input-group label {
       font-size: 0.85rem;
       color: var(--text-muted);
+      font-weight: 700;
     }
 
     .auth-input-group input {
-      background: #0f172a;
+      background: #f8fafc;
       border: 1px solid var(--border-color);
-      color: #fff;
+      color: #0f172a;
       padding: 10px 12px;
       border-radius: 6px;
       outline: none;
       font-size: 0.95rem;
+      font-weight: 600;
     }
 
     .auth-input-group input:focus {
@@ -105,6 +109,7 @@
       color: var(--danger);
       font-size: 0.82rem;
       text-align: center;
+      font-weight: 700;
       min-height: 18px;
     }
 
@@ -113,7 +118,7 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
-      padding: 16px 24px;
+      padding: 8px 16px;
       box-sizing: border-box;
     }
 
@@ -121,37 +126,32 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       flex-shrink: 0;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 6px;
       background-color: var(--bg-color);
     }
 
     .brand-title {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
     }
 
     .brand-logo {
-      width: 64px;
-      height: 64px;
+      width: 48px;
+      height: 48px;
       object-fit: contain;
       border-radius: 8px;
-      background-color: #0f172a;
+      background-color: #f1f5f9;
       border: 1px solid var(--border-color);
-      padding: 6px;
+      padding: 4px;
       cursor: pointer;
-      transition: border-color 0.2s;
-    }
-
-    .brand-logo:hover {
-      border-color: var(--accent);
     }
 
     .badge-pro {
-      background: linear-gradient(135deg, #0284c7, #6366f1);
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
       color: #fff;
       font-size: 0.75rem;
       font-weight: 800;
@@ -162,15 +162,15 @@
 
     .sync-status {
       font-size: 0.8rem;
-      padding: 4px 10px;
+      padding: 3px 10px;
       border-radius: 12px;
-      font-weight: 600;
+      font-weight: 700;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(56, 189, 248, 0.15);
+      background: #e0f2fe;
       color: var(--accent);
-      border: 1px solid var(--accent);
+      border: 1px solid #bae6fd;
     }
 
     .user-info {
@@ -182,48 +182,61 @@
     .user-email {
       font-size: 0.85rem;
       color: var(--text-muted);
+      font-weight: 700;
     }
 
     h1 {
       margin: 0;
-      font-size: 2.8rem;
-      font-weight: 700;
-      color: var(--accent);
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-main);
       line-height: 1.1;
+    }
+
+    /* 工具按鈕區移入頂部導向列 */
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .nav-tabs {
       display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-      flex-shrink: 0;
+      gap: 6px;
     }
 
     .tab-btn {
-      background: var(--card-bg);
+      background: #f1f5f9;
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 8px 20px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.85rem;
       cursor: pointer;
       transition: all 0.2s;
     }
 
     .tab-btn.active {
-      background: #0284c7;
+      background: var(--accent);
       color: #fff;
-      border-color: #38bdf8;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+      border-color: var(--accent);
+      box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+    }
+
+    .action-toolbar {
+      display: flex;
+      gap: 6px;
+      align-items: center;
     }
 
     .sheet-bar {
       display: flex;
       align-items: center;
       gap: 6px;
-      background: #0f172a;
-      padding: 6px 12px;
+      background: #f1f5f9;
+      padding: 4px 8px;
       border-radius: 8px 8px 0 0;
       border: 1px solid var(--border-color);
       border-bottom: none;
@@ -235,23 +248,21 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: var(--card-bg);
+      background: #ffffff;
       color: var(--text-muted);
-      padding: 6px 14px;
+      padding: 4px 12px;
       border-radius: 6px;
       font-size: 0.85rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: grab;
       border: 1px solid var(--border-color);
       user-select: none;
     }
 
-    .sheet-tab:active { cursor: grabbing; }
-
     .sheet-tab.active {
-      background: #0284c7;
+      background: var(--accent);
       color: #fff;
-      border-color: #38bdf8;
+      border-color: var(--accent);
     }
 
     .sheet-close {
@@ -259,65 +270,55 @@
       opacity: 0.7;
       cursor: pointer;
     }
-    .sheet-close:hover { opacity: 1; color: #f87171; }
+    .sheet-close:hover { opacity: 1; color: #dc2626; }
 
     .tab-content {
       display: none;
       flex: 1;
       min-height: 0;
-      background-color: var(--card-bg);
-      border-radius: 0 0 10px 10px;
+      background-color: #ffffff;
+      border-radius: 0 0 8px 8px;
       border: 1px solid var(--border-color);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
       position: relative;
     }
 
     .tab-content.active { display: flex; flex-direction: column; }
 
-    .toolbar {
-      display: flex;
-      gap: 12px;
-      padding: 12px 16px;
-      background-color: var(--card-bg);
-      border-bottom: 1px solid var(--border-color);
-      flex-wrap: wrap;
-      align-items: center;
-      flex-shrink: 0;
-    }
-
     .btn {
-      background-color: var(--card-bg);
+      background-color: #ffffff;
       color: var(--text-main);
       border: 1px solid var(--border-color);
-      padding: 6px 12px;
+      padding: 5px 12px;
       border-radius: 6px;
       cursor: pointer;
-      font-weight: 600;
-      font-size: 0.85rem;
+      font-weight: 700;
+      font-size: 0.82rem;
       transition: all 0.2s;
     }
 
     .btn:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-primary { background-color: #0284c7; color: #fff; border: none; }
-    .btn-primary:hover { background-color: #0369a1; color: #fff; }
+    .btn-primary { background-color: var(--accent); color: #fff; border: none; }
+    .btn-primary:hover { background-color: var(--accent-hover); color: #fff; }
+    .btn-success { background-color: var(--success); color: #fff; border: none; }
+    .btn-success:hover { background-color: #047857; color: #fff; }
 
     .table-scroll-container {
       flex: 1;
       min-height: 0;
       overflow: auto;
-      padding: 0 16px 12px 16px;
+      padding: 0;
     }
 
     table { width: 100%; border-collapse: collapse; text-align: left; }
 
     th {
-      background-color: #0f172a;
-      color: #94a3b8;
-      font-weight: 700;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 800;
       font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      padding: 12px 16px;
+      padding: 10px 14px;
       border-bottom: 2px solid var(--border-color);
       position: sticky;
       top: 0;
@@ -325,25 +326,11 @@
       user-select: none;
     }
 
-    th[draggable="true"] { cursor: grab; }
-    th[draggable="true"]:active { cursor: grabbing; }
-
     .drag-handle {
       cursor: grab;
       color: var(--text-muted);
       margin-right: 8px;
       font-weight: bold;
-    }
-    .drag-handle:active { cursor: grabbing; }
-
-    tr.drag-over-row {
-      border-top: 2px solid var(--accent) !important;
-      background-color: rgba(56, 189, 248, 0.08) !important;
-    }
-
-    th.drag-over-col {
-      border-left: 3px solid var(--accent) !important;
-      background-color: #334155 !important;
     }
 
     .del-col-btn {
@@ -351,19 +338,18 @@
       color: var(--danger);
       cursor: pointer;
       font-size: 0.75rem;
-      opacity: 0.7;
     }
-    .del-col-btn:hover { opacity: 1; }
 
     td {
-      padding: 9px 16px;
+      padding: 8px 14px;
       border-bottom: 1px solid var(--border-color);
-      font-size: 0.88rem;
-      color: var(--text-main);
+      font-size: 0.9rem;
+      color: #0f172a;
+      font-weight: 600;
       vertical-align: middle;
     }
 
-    tr:hover td { background-color: rgba(255, 255, 255, 0.03); }
+    tr:hover td { background-color: #f8fafc; }
 
     .progress-container {
       display: flex;
@@ -375,7 +361,7 @@
 
     .progress-bar-bg {
       flex: 1;
-      background: #0f172a;
+      background: #e2e8f0;
       border-radius: 6px;
       height: 12px;
       overflow: hidden;
@@ -385,14 +371,14 @@
 
     .progress-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, #0284c7, #38bdf8, #34d399);
+      background: linear-gradient(90deg, #0284c7, #059669);
       border-radius: 6px;
       transition: width 0.3s ease;
     }
 
     .progress-text {
       font-size: 0.8rem;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--accent);
       min-width: 38px;
       text-align: right;
@@ -400,23 +386,22 @@
 
     .status-badge {
       display: inline-block;
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 4px;
       font-size: 0.78rem;
-      font-weight: 700;
+      font-weight: 800;
     }
-    .status-done { background: rgba(52, 211, 153, 0.15); color: var(--success); border: 1px solid var(--success); }
-    .status-doing { background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid var(--accent); }
-    .status-todo { background: rgba(251, 191, 36, 0.15); color: var(--warning); border: 1px solid var(--warning); }
+    .status-done { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+    .status-doing { background: #e0f2fe; color: #0369a1; border: 1px solid #38bdf8; }
+    .status-todo { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
 
     .editable { cursor: pointer; }
     .editable:hover {
-      background-color: rgba(56, 189, 248, 0.15) !important;
+      background-color: #e0f2fe !important;
       outline: 1px dashed var(--accent);
     }
 
-    .action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; }
-    .action-btn:hover { color: var(--danger); }
+    .action-btn { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.85rem; font-weight: 700; }
 
     .table-img-preview {
       max-width: 48px;
@@ -424,7 +409,61 @@
       object-fit: contain;
       border-radius: 4px;
       border: 1px solid var(--border-color);
-      background: #0f172a;
+      background: #f8fafc;
+    }
+
+    /* === 專案進度分析儀表板樣式 === */
+    .dashboard-container {
+      padding: 16px;
+      overflow-y: auto;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-card .title {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .chart-section {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .chart-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
   </style>
 </head>
@@ -453,43 +492,95 @@
   <div class="app-container">
     <header>
       <div class="brand-title">
-        <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo" title="雙擊可更改圖片網址">
+        <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo" title="雙擊可更改圖片網址">
         <div>
-          <span class="badge-pro">CLOUD ENTERPRISE</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h1>Filament Outsource Tracing</h1>
+            <span class="badge-pro">CLOUD ENTERPRISE</span>
+          </div>
           <span id="sync-indicator" class="sync-status">● 最後更新: 無紀錄</span>
-          <h1>Filament Outsource Tracing</h1>
         </div>
       </div>
-      <div class="user-info">
-        <span id="user-display" class="user-email"></span>
-        <button id="logout-btn" class="btn" style="display: none;">登出</button>
+
+      <!-- 控制按鈕往上方移動 -->
+      <div class="header-controls">
+        <div class="nav-tabs">
+          <button class="tab-btn active" onclick="switchTab('tracker-tab')">📋 專案進度追蹤表</button>
+          <button class="tab-btn" onclick="switchTab('analytics-tab')">📊 專案進度分析圖表</button>
+        </div>
+
+        <div class="action-toolbar">
+          <button id="add-row-btn" class="btn btn-primary">➕ 新增列</button>
+          <button id="add-col-btn" class="btn btn-primary">➕ 新增欄位</button>
+          <button id="export-excel-btn" class="btn btn-success">📥 匯出 Excel</button>
+          <button id="import-excel-btn" class="btn">📤 匯入 Excel</button>
+          <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;">
+        </div>
+
+        <div class="user-info">
+          <span id="user-display" class="user-email"></span>
+          <button id="logout-btn" class="btn" style="display: none;">登出</button>
+        </div>
       </div>
     </header>
 
-    <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('tracker-tab')">專案進度追蹤表</button>
-    </div>
-
     <div class="sheet-bar">
       <div id="sheets-container" style="display: flex; gap: 6px;"></div>
-      <button id="add-sheet-btn" class="btn" style="padding: 2px 8px; font-size: 0.8rem;" title="新增工作表">新增工作表</button>
+      <button id="add-sheet-btn" class="btn" style="padding: 2px 8px; font-size: 0.8rem;" title="新增工作表">+ 新增工作表</button>
       <button id="copy-sheet-btn" class="btn" style="padding: 2px 8px; font-size: 0.8rem;" title="複製當前工作表">複製工作表</button>
     </div>
 
+    <!-- 頁籤 1: 專案進度追蹤表 -->
     <div id="tracker-tab" class="tab-content active">
-      <div class="toolbar">
-        <button id="add-row-btn" class="btn btn-primary">新增列</button>
-        <button id="add-col-btn" class="btn btn-primary">新增自訂欄位</button>
-        
-        <button id="export-excel-btn" class="btn">匯出 Excel</button>
-        <button id="import-excel-btn" class="btn">匯入 Excel</button>
-        <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;">
-      </div>
       <div class="table-scroll-container">
         <table>
           <thead id="table-head"></thead>
           <tbody id="table-body"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- 頁籤 2: 專案進度分析圖表 -->
+    <div id="analytics-tab" class="tab-content">
+      <div class="dashboard-container">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="title">總品號數量</div>
+            <div id="stat-total-items" class="value">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="title">總項目數量</div>
+            <div id="stat-total-tasks" class="value">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="title" style="color: var(--success);">已完成件數</div>
+            <div id="stat-completed-tasks" class="value" style="color: var(--success);">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="title" style="color: var(--warning);">未完成件數</div>
+            <div id="stat-pending-tasks" class="value" style="color: var(--warning);">0</div>
+          </div>
+        </div>
+
+        <div class="chart-section">
+          <div class="chart-title">📌 各品號 / 貨號進度分析彙總表</div>
+          <div class="table-scroll-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>品號</th>
+                  <th>貨號</th>
+                  <th style="text-align: center;">總件數</th>
+                  <th style="text-align: center; color: var(--success);">已完成件數</th>
+                  <th style="text-align: center; color: var(--warning);">未完成件數</th>
+                  <th>整體完成進度</th>
+                  <th>備註</th>
+                </tr>
+              </thead>
+              <tbody id="analytics-table-body"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -506,7 +597,6 @@
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
-  // 您提供的 Firebase Config 配置
   const firebaseConfig = {
     apiKey: "AIzaSyDrRzvbrpq87mDlHE8vpoAfWxwNS5aOV2E",
     authDomain: "outsourcefilament.firebaseapp.com",
@@ -518,7 +608,6 @@
     measurementId: "G-5M1XTD79JT"
   };
 
-  // 初始化 Firebase
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const db = getDatabase(app);
@@ -560,7 +649,7 @@
     status: "進行中"
   }));
 
-  const defaultLogo = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>";
+  const defaultLogo = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>";
 
   let appState = {
     logoUrl: defaultLogo,
@@ -623,7 +712,6 @@
     });
   };
 
-  // 監聽登入狀態變更
   onAuthStateChanged(auth, (user) => {
     if (user) {
       authOverlay.style.display = "none";
@@ -660,7 +748,6 @@
     onValue(userDbRef, (snapshot) => {
       const data = snapshot.val();
       if (data && data.workbook && data.workbook.length > 0) {
-        // 只有當雲端有資料且初次載入，或雲端時間更新時才覆蓋，避免寫入瞬間被回傳蓋掉
         if (!isCloudLoaded) {
           appState = data;
         }
@@ -689,16 +776,13 @@
     syncIndicator.textContent = `● 最後更新: ${timeStr}`;
   }
 
-  // 統一使用整包資料直接 set 寫入，確保結構完整且 F5 不會遺失
   function saveData() {
     const timeNow = getCurrentFormattedTime();
     appState.lastUpdated = timeNow;
 
-    // 先存入本地端快取確保畫面即時且重新整理不遺失
     localStorage.setItem('filament_app_data', JSON.stringify(appState));
     renderApp();
 
-    // 同步到 Firebase 雲端資料庫
     if (isCloudLoaded && auth.currentUser && userDbRef) {
       set(userDbRef, appState).catch(err => console.error("雲端同步失敗", err));
     }
@@ -709,14 +793,11 @@
     updateSyncStatusText();
     renderSheets();
     renderTable();
+    renderAnalytics();
   }
 
   function getActiveSheet() {
     return appState.workbook.find(s => s.id === activeSheetId) || appState.workbook[0];
-  }
-
-  function getActiveSheetIndex() {
-    return appState.workbook.findIndex(s => s.id === activeSheetId);
   }
 
   function isImageUrl(urlStr) {
@@ -737,6 +818,7 @@
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     if (window.event) window.event.target.classList.add('active');
     document.getElementById(tabId).classList.add('active');
+    if (tabId === 'analytics-tab') renderAnalytics();
   };
 
   function renderSheets() {
@@ -826,7 +908,7 @@
           <span class="del-col-btn" title="刪除欄位">✕</span>
         </th>`;
     });
-    trHeadHtml += `<th style="width: 80px; text-align: center;">操作</th></tr>`;
+    trHeadHtml += `<th style="width: 70px; text-align: center;">操作</th></tr>`;
     thead.innerHTML = trHeadHtml;
 
     thead.querySelectorAll('.th-col').forEach(th => {
@@ -835,28 +917,6 @@
       th.ondblclick = () => editColumnLabel(index);
       const delBtn = th.querySelector('.del-col-btn');
       if (delBtn) delBtn.onclick = (e) => deleteColumn(sheet.columns[index].key, e);
-
-      th.ondragstart = (e) => {
-        draggedColIndex = index;
-        e.dataTransfer.effectAllowed = 'move';
-      };
-      th.ondragover = (e) => {
-        e.preventDefault();
-        th.classList.add('drag-over-col');
-      };
-      th.ondragleave = () => {
-        th.classList.remove('drag-over-col');
-      };
-      th.ondrop = (e) => {
-        e.preventDefault();
-        th.classList.remove('drag-over-col');
-        if (draggedColIndex !== null && draggedColIndex !== index) {
-          const movedCol = sheet.columns.splice(draggedColIndex, 1)[0];
-          sheet.columns.splice(index, 0, movedCol);
-          saveData();
-        }
-        draggedColIndex = null;
-      };
     });
 
     tbody.innerHTML = '';
@@ -906,28 +966,6 @@
         </td>`;
       tr.innerHTML = trBodyHtml;
 
-      tr.ondragstart = (e) => {
-        draggedRowIndex = index;
-        e.dataTransfer.effectAllowed = 'move';
-      };
-      tr.ondragover = (e) => {
-        e.preventDefault();
-        tr.classList.add('drag-over-row');
-      };
-      tr.ondragleave = () => {
-        tr.classList.remove('drag-over-row');
-      };
-      tr.ondrop = (e) => {
-        e.preventDefault();
-        tr.classList.remove('drag-over-row');
-        if (draggedRowIndex !== null && draggedRowIndex !== index) {
-          const movedRow = sheet.data.splice(draggedRowIndex, 1)[0];
-          sheet.data.splice(index, 0, movedRow);
-          saveData();
-        }
-        draggedRowIndex = null;
-      };
-
       tr.querySelectorAll('.cell-edit').forEach(td => {
         const key = td.getAttribute('data-key');
         td.ondblclick = () => editCell(index, key);
@@ -940,6 +978,78 @@
       if (delRowBtn) delRowBtn.onclick = () => deleteRow(index);
 
       tbody.appendChild(tr);
+    });
+  }
+
+  // --- 專案進度分析圖表渲染邏輯 ---
+  function renderAnalytics() {
+    const sheet = getActiveSheet();
+    if (!sheet || !sheet.data) return;
+
+    let totalTasks = sheet.data.length;
+    let completedTasks = 0;
+    let pendingTasks = 0;
+
+    const itemMap = {};
+
+    sheet.data.forEach(row => {
+      const itemNo = row.itemNo || '未分類';
+      const sku = row.sku || '-';
+      const isDone = row.status === '已完成' || row.progress == 100;
+
+      if (isDone) completedTasks++;
+      else pendingTasks++;
+
+      if (!itemMap[itemNo]) {
+        itemMap[itemNo] = {
+          itemNo: itemNo,
+          sku: sku,
+          total: 0,
+          completed: 0,
+          pending: 0,
+          notes: []
+        };
+      }
+
+      itemMap[itemNo].total++;
+      if (isDone) itemMap[itemNo].completed++;
+      else itemMap[itemNo].pending++;
+
+      if (row.purchaseNo && row.purchaseNo !== '-') {
+        itemMap[itemNo].notes.push(row.purchaseNo);
+      }
+    });
+
+    const uniqueItemsCount = Object.keys(itemMap).length;
+
+    document.getElementById('stat-total-items').textContent = uniqueItemsCount;
+    document.getElementById('stat-total-tasks').textContent = totalTasks;
+    document.getElementById('stat-completed-tasks').textContent = completedTasks;
+    document.getElementById('stat-pending-tasks').textContent = pendingTasks;
+
+    const analyticsBody = document.getElementById('analytics-table-body');
+    analyticsBody.innerHTML = '';
+
+    Object.values(itemMap).forEach(item => {
+      const pct = item.total > 0 ? Math.round((item.completed / item.total) * 100) : 0;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${item.itemNo}</strong></td>
+        <td>${item.sku}</td>
+        <td style="text-align: center;">${item.total}</td>
+        <td style="text-align: center; color: var(--success);">${item.completed}</td>
+        <td style="text-align: center; color: var(--warning);">${item.pending}</td>
+        <td>
+          <div class="progress-container">
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" style="width: ${pct}%;"></div>
+            </div>
+            <span class="progress-text">${pct}%</span>
+          </div>
+        </td>
+        <td>${item.notes.length > 0 ? '料號: ' + item.notes.slice(0, 2).join(', ') : '-'}</td>
+      `;
+      analyticsBody.appendChild(tr);
     });
   }
 

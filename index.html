@@ -122,7 +122,7 @@
       box-sizing: border-box;
     }
 
-    /* 美化 Header 與按鈕列排版 (圖2對應修正) */
+    /* Header 與頂部列 */
     header {
       display: flex;
       justify-content: space-between;
@@ -196,7 +196,7 @@
       width: fit-content;
     }
 
-    /* 重構按鈕排版組合 */
+    /* 按鈕排版 */
     .header-controls {
       display: flex;
       align-items: center;
@@ -204,7 +204,6 @@
       flex-wrap: wrap;
     }
 
-    /* 主頁籤切換按鈕組 */
     .nav-tabs {
       display: flex;
       background: #f1f5f9;
@@ -232,7 +231,6 @@
       box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);
     }
 
-    /* 功能工具按鈕組 */
     .action-toolbar {
       display: flex;
       gap: 8px;
@@ -267,7 +265,6 @@
     .btn-success { background-color: var(--success); color: #ffffff; border: none; }
     .btn-success:hover { background-color: #047857; color: #ffffff; }
 
-    /* 使用者資訊區 */
     .user-profile-badge {
       display: flex;
       align-items: center;
@@ -284,7 +281,7 @@
       font-weight: 700;
     }
 
-    /* 工作表標籤列 */
+    /* 工作表 Tab 列 */
     .sheet-bar {
       display: flex;
       align-items: center;
@@ -448,7 +445,7 @@
       background: #f8fafc;
     }
 
-    /* === 專案進度分析儀表板樣式 (圖1細分對應修正) === */
+    /* 分析儀表板樣式 */
     .dashboard-container {
       padding: 16px;
       overflow-y: auto;
@@ -536,7 +533,6 @@
   </div>
 
   <div class="app-container">
-    <!-- 美化後的頂部 Header 與按鈕列 (對應圖2需求) -->
     <header>
       <div class="brand-title">
         <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo" title="雙擊可更改圖片網址">
@@ -550,13 +546,11 @@
       </div>
 
       <div class="header-controls">
-        <!-- 頁籤切換按鈕組 -->
         <div class="nav-tabs">
           <button class="tab-btn active" onclick="switchTab('tracker-tab')">📋 專案進度追蹤表</button>
           <button class="tab-btn" onclick="switchTab('analytics-tab')">📊 專案進度分析圖表</button>
         </div>
 
-        <!-- 功能動作按鈕組 -->
         <div class="action-toolbar">
           <button id="add-row-btn" class="btn btn-primary">➕ 新增列</button>
           <button id="add-col-btn" class="btn btn-primary">➕ 新增欄位</button>
@@ -565,7 +559,6 @@
           <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;">
         </div>
 
-        <!-- 使用者個人資訊 -->
         <div class="user-profile-badge">
           <span id="user-display" class="user-email"></span>
           <button id="logout-btn" class="btn" style="padding: 2px 8px; font-size: 0.78rem; display: none;">登出</button>
@@ -573,7 +566,6 @@
       </div>
     </header>
 
-    <!-- 工作表 Tab 標籤列 -->
     <div class="sheet-bar">
       <div id="sheets-container" style="display: flex; gap: 6px;"></div>
       <button id="add-sheet-btn" class="btn" style="padding: 2px 8px; font-size: 0.8rem;" title="新增工作表">+ 新增工作表</button>
@@ -590,10 +582,9 @@
       </div>
     </div>
 
-    <!-- 頁籤 2: 專案進度分析圖表 (對應圖1細分需求) -->
+    <!-- 頁籤 2: 專案進度分析圖表 -->
     <div id="analytics-tab" class="tab-content">
       <div class="dashboard-container">
-        <!-- 頂部重點指標卡片組 -->
         <div class="stats-grid">
           <div class="stat-card">
             <div class="title">總品號數量</div>
@@ -629,7 +620,6 @@
           </div>
         </div>
 
-        <!-- 各品號/貨號細分進度統計總表 (圖1欄位更細分) -->
         <div class="chart-section">
           <div class="chart-title">📌 各品號 / 貨號進度分析彙總表 (含三大關卡細分)</div>
           <div class="table-scroll-container">
@@ -691,13 +681,14 @@
   const userDisplay = document.getElementById('user-display');
   const logoutBtn = document.getElementById('logout-btn');
 
+  // 四個核心欄位設定為固定無法更改名稱
   const defaultColumns = [
     { key: "itemNo", label: "品號", isSystem: false },
     { key: "sku", label: "貨號", isSystem: false },
-    { key: "drawingProg", label: "圖面進度 (%)", isSystem: false },
-    { key: "machiningProg", label: "大東加工進度 (%)", isSystem: false },
-    { key: "gaugeProg", label: "檢具進度 (%)", isSystem: false },
-    { key: "progress", label: "整體進度 (%)", isSystem: false },
+    { key: "drawingProg", label: "圖面進度%", isSystem: true, locked: true },
+    { key: "machiningProg", label: "大東加工進度%", isSystem: true, locked: true },
+    { key: "gaugeProg", label: "檢具進度%", isSystem: true, locked: true },
+    { key: "progress", label: "整體進度%", isSystem: true, locked: true },
     { key: "status", label: "狀態", isSystem: false }
   ];
 
@@ -731,8 +722,6 @@
   };
 
   let activeSheetId = "sheet_1";
-  let draggedColIndex = null;
-  let draggedRowIndex = null;
   let isCloudLoaded = false;
   let userDbRef = null;
 
@@ -822,6 +811,20 @@
         }
         if (!appState.logoUrl) appState.logoUrl = defaultLogo;
         
+        // 確保每個工作表都包含 4 個核心固定欄位
+        appState.workbook.forEach(sh => {
+          if (!sh.columns) sh.columns = JSON.parse(JSON.stringify(defaultColumns));
+          defaultColumns.forEach(defCol => {
+            let found = sh.columns.find(c => c.key === defCol.key || c.label === defCol.label);
+            if (!found) {
+              sh.columns.push(JSON.parse(JSON.stringify(defCol)));
+            } else {
+              found.locked = true;
+              found.label = defCol.label;
+            }
+          });
+        });
+
         if (!appState.workbook.find(s => s.id === activeSheetId)) {
           activeSheetId = appState.workbook[0].id;
         }
@@ -971,10 +974,11 @@
 
     let trHeadHtml = '<tr><th style="width: 40px; text-align: center;">≡</th>';
     sheet.columns.forEach((col, index) => {
+      const isLocked = col.locked;
       trHeadHtml += `
-        <th class="th-col" draggable="true" data-index="${index}">
+        <th class="th-col" data-index="${index}">
           ${col.label}
-          <span class="del-col-btn" title="刪除欄位">✕</span>
+          ${!isLocked ? `<span class="del-col-btn" title="刪除欄位">✕</span>` : ''}
         </th>`;
     });
     trHeadHtml += `<th style="width: 70px; text-align: center;">操作</th></tr>`;
@@ -982,9 +986,14 @@
 
     thead.querySelectorAll('.th-col').forEach(th => {
       const index = Number(th.getAttribute('data-index'));
-      th.ondblclick = () => editColumnLabel(index);
-      const delBtn = th.querySelector('.del-col-btn');
-      if (delBtn) delBtn.onclick = (e) => deleteColumn(sheet.columns[index].key, e);
+      const col = sheet.columns[index];
+      
+      // 非鎖定欄位才允許雙擊修改標題與刪除
+      if (!col.locked) {
+        th.ondblclick = () => editColumnLabel(index);
+        const delBtn = th.querySelector('.del-col-btn');
+        if (delBtn) delBtn.onclick = (e) => deleteColumn(col.key, e);
+      }
     });
 
     tbody.innerHTML = '';
@@ -1049,14 +1058,39 @@
     });
   }
 
-  // --- 專案進度分析圖表細分渲染邏輯 (對應圖1細分需求) ---
+  // --- 專案進度分析圖表動態欄位匹配與已完成計算邏輯 ---
   function renderAnalytics() {
     const sheet = getActiveSheet();
     if (!sheet || !sheet.data) return;
 
     let totalTasks = sheet.data.length;
-    
-    // 三大關卡計數器
+
+    // 1. 動態尋找對應的欄位 key (依據標籤包含的關鍵字進行嚴格匹配)
+    let drawingKey = null;
+    let machiningKey = null;
+    let gaugeKey = null;
+    let overallKey = null;
+    let itemNoKey = null;
+    let skuKey = null;
+
+    sheet.columns.forEach(col => {
+      const label = col.label || '';
+      if (label.includes('品號') || col.key === 'itemNo') itemNoKey = col.key;
+      else if (label.includes('貨號') || col.key === 'sku') skuKey = col.key;
+      else if (label.includes('圖面進度%')) drawingKey = col.key;
+      else if (label.includes('大東加工進度%')) machiningKey = col.key;
+      else if (label.includes('檢具進度%')) gaugeKey = col.key;
+      else if (label.includes('整體進度%') || col.key === 'progress') overallKey = col.key;
+    });
+
+    // 輔助函式：判斷進度數值達 100%（或值為 "100" / "100%"），即計為已完成
+    const isCompleted = (val) => {
+      if (val === undefined || val === null) return false;
+      const strVal = String(val).replace('%', '').trim();
+      const num = parseInt(strVal, 10);
+      return !isNaN(num) && num >= 100;
+    };
+
     let drawingDone = 0, drawingPending = 0;
     let machiningDone = 0, machiningPending = 0;
     let gaugeDone = 0, gaugePending = 0;
@@ -1064,13 +1098,12 @@
     const itemMap = {};
 
     sheet.data.forEach(row => {
-      const itemNo = row.itemNo || '未分類';
-      const sku = row.sku || '-';
+      const itemNo = (itemNoKey && row[itemNoKey]) ? row[itemNoKey] : '未分類';
+      const sku = (skuKey && row[skuKey]) ? row[skuKey] : '-';
 
-      // 判斷各關卡完成度 (以 100% 視為已完成)
-      const isDrawingDone = (parseInt(row.drawingProg) || 0) === 100;
-      const isMachiningDone = (parseInt(row.machiningProg) || 0) === 100;
-      const isGaugeDone = (parseInt(row.gaugeProg) || 0) === 100;
+      const isDrawingDone = drawingKey ? isCompleted(row[drawingKey]) : false;
+      const isMachiningDone = machiningKey ? isCompleted(row[machiningKey]) : false;
+      const isGaugeDone = gaugeKey ? isCompleted(row[gaugeKey]) : false;
 
       if (isDrawingDone) drawingDone++; else drawingPending++;
       if (isMachiningDone) machiningDone++; else machiningPending++;
@@ -1093,8 +1126,9 @@
       if (isDrawingDone) itemMap[itemNo].drawingDone++; else itemMap[itemNo].drawingPending++;
       if (isMachiningDone) itemMap[itemNo].machiningDone++; else itemMap[itemNo].machiningPending++;
       if (isGaugeDone) itemMap[itemNo].gaugeDone++; else itemMap[itemNo].gaugePending++;
-      
-      itemMap[itemNo].totalProgSum += (parseInt(row.progress) || 0);
+
+      const progVal = overallKey ? (parseInt(String(row[overallKey]).replace('%',''), 10) || 0) : 0;
+      itemMap[itemNo].totalProgSum += progVal;
 
       if (row.purchaseNo && row.purchaseNo !== '-') {
         itemMap[itemNo].notes.push(row.purchaseNo);
@@ -1103,12 +1137,12 @@
 
     const uniqueItemsCount = Object.keys(itemMap).length;
 
-    // 計算各關卡達成率百分比
+    // 計算關卡完成率 = (已完成件數 / 總件數) * 100%
     const drawingRate = totalTasks > 0 ? Math.round((drawingDone / totalTasks) * 100) : 0;
     const machiningRate = totalTasks > 0 ? Math.round((machiningDone / totalTasks) * 100) : 0;
     const gaugeRate = totalTasks > 0 ? Math.round((gaugeDone / totalTasks) * 100) : 0;
 
-    // 更新頂部卡片數據
+    // 更新頂部卡片
     document.getElementById('stat-total-items').textContent = uniqueItemsCount;
     document.getElementById('stat-total-tasks').textContent = totalTasks;
 
@@ -1124,7 +1158,7 @@
     document.getElementById('stat-gauge-done').textContent = `已完成: ${gaugeDone}`;
     document.getElementById('stat-gauge-pending').textContent = `未完成: ${gaugePending}`;
 
-    // 渲染細分表格
+    // 渲染彙總表 (精確顯示完成率以及 (已完成/未完成) 件數)
     const analyticsBody = document.getElementById('analytics-table-body');
     analyticsBody.innerHTML = '';
 
@@ -1167,10 +1201,13 @@
 
   function editColumnLabel(colIndex) {
     const sheet = getActiveSheet();
-    const currentLabel = sheet.columns[colIndex].label;
+    const col = sheet.columns[colIndex];
+    if (col.locked) return alert("此為系統核心固定欄位，無法更改名稱！");
+
+    const currentLabel = col.label;
     const newLabel = prompt("請修改欄位名稱：", currentLabel);
     if (newLabel && newLabel.trim() !== "") {
-      sheet.columns[colIndex].label = newLabel.trim();
+      col.label = newLabel.trim();
       saveData();
     }
   }
@@ -1178,6 +1215,11 @@
   function deleteColumn(colKey, event) {
     event.stopPropagation();
     const sheet = getActiveSheet();
+    const col = sheet.columns.find(c => c.key === colKey);
+    if (col && col.locked) {
+      alert("此為系統核心固定欄位，無法刪除！");
+      return;
+    }
     if (sheet.columns.length <= 1) {
       alert("至少需保留一個欄位！");
       return;
@@ -1198,7 +1240,7 @@
 
     if (newVal !== null) {
       if (isProg) {
-        const parsedVal = Math.min(100, Math.max(0, parseInt(newVal) || 0));
+        const parsedVal = Math.min(100, Math.max(0, parseInt(newVal, 10) || 0));
         sheet.data[index][key] = parsedVal;
         
         if (key === 'progress') {
@@ -1255,12 +1297,12 @@
   };
 
   document.getElementById('add-col-btn').onclick = () => {
-    const colLabel = prompt("請輸入新欄位名稱：");
+    const colLabel = prompt("請輸入新自訂欄位名稱：");
     if (!colLabel) return;
 
     const sheet = getActiveSheet();
     const colKey = 'custom_' + Date.now();
-    sheet.columns.push({ key: colKey, label: colLabel, isSystem: false });
+    sheet.columns.push({ key: colKey, label: colLabel.trim(), isSystem: false, locked: false });
 
     if (sheet.data) {
       sheet.data.forEach(row => { row[colKey] = "-"; });
@@ -1269,7 +1311,7 @@
     saveData();
   };
 
-  // 匯出 Excel 功能
+  // 匯出 Excel
   document.getElementById('export-excel-btn').onclick = async () => {
     const sheet = getActiveSheet();
     if (!sheet || !sheet.data || sheet.data.length === 0) {
@@ -1300,7 +1342,7 @@
     URL.revokeObjectURL(url);
   };
 
-  // 匯入 Excel 功能
+  // 匯入 Excel
   const excelFileInput = document.getElementById('excel-file-input');
   document.getElementById('import-excel-btn').onclick = () => {
     excelFileInput.click();
@@ -1330,11 +1372,24 @@
         const headerRow = worksheet.getRow(1);
         headerRow.eachCell((cell, colNumber) => {
           const label = cell.value ? cell.value.toString() : `欄位_${colNumber}`;
-          newColumns.push({
-            key: `col_${colNumber}`,
-            label: label,
-            isSystem: false
-          });
+          let matchedDef = defaultColumns.find(d => d.label === label);
+          if (matchedDef) {
+            newColumns.push(JSON.parse(JSON.stringify(matchedDef)));
+          } else {
+            newColumns.push({
+              key: `col_${colNumber}`,
+              label: label,
+              isSystem: false,
+              locked: false
+            });
+          }
+        });
+
+        // 若匯入的檔案缺少的預設欄位，補上
+        defaultColumns.forEach(defCol => {
+          if (!newColumns.find(c => c.label === defCol.label)) {
+            newColumns.push(JSON.parse(JSON.stringify(defCol)));
+          }
         });
 
         worksheet.eachRow((row, rowNumber) => {

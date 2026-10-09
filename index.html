@@ -12,7 +12,7 @@
       --card-bg: #f8fafc;
       --border-color: #cbd5e1;
       --text-main: #0f172a;
-      --text-muted: #334155;
+      --text-muted: #475569;
       --accent: #0284c7;
       --accent-hover: #0369a1;
       --success: #059669;
@@ -39,7 +39,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(15, 23, 42, 0.7);
+      background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(4px);
       display: flex;
       justify-content: center;
@@ -113,24 +113,26 @@
       min-height: 18px;
     }
 
-    /* 主應用介面 */
+    /* 主應用介面容器 */
     .app-container {
       display: flex;
       flex-direction: column;
       height: 100vh;
-      padding: 8px 16px;
+      padding: 12px 20px;
       box-sizing: border-box;
     }
 
+    /* 美化 Header 與按鈕列排版 (圖2對應修正) */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       flex-shrink: 0;
-      border-bottom: 2px solid var(--border-color);
-      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
       background-color: var(--bg-color);
+      gap: 16px;
     }
 
     .brand-title {
@@ -140,8 +142,8 @@
     }
 
     .brand-logo {
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       object-fit: contain;
       border-radius: 8px;
       background-color: #f1f5f9;
@@ -150,10 +152,30 @@
       cursor: pointer;
     }
 
+    .brand-text-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .title-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
     .badge-pro {
       background: linear-gradient(135deg, #0284c7, #4f46e5);
       color: #fff;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 800;
       padding: 2px 8px;
       border-radius: 4px;
@@ -161,56 +183,42 @@
     }
 
     .sync-status {
-      font-size: 0.8rem;
-      padding: 3px 10px;
+      font-size: 0.78rem;
+      padding: 2px 8px;
       border-radius: 12px;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       background: #e0f2fe;
       color: var(--accent);
       border: 1px solid #bae6fd;
+      width: fit-content;
     }
 
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .user-email {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      font-weight: 700;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: var(--text-main);
-      line-height: 1.1;
-    }
-
-    /* 工具按鈕區移入頂部導向列 */
+    /* 重構按鈕排版組合 */
     .header-controls {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       flex-wrap: wrap;
     }
 
+    /* 主頁籤切換按鈕組 */
     .nav-tabs {
       display: flex;
-      gap: 6px;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      gap: 4px;
     }
 
     .tab-btn {
-      background: #f1f5f9;
-      border: 1px solid var(--border-color);
+      background: transparent;
+      border: none;
       color: var(--text-muted);
-      padding: 6px 14px;
+      padding: 6px 16px;
       border-radius: 6px;
       font-weight: 700;
       font-size: 0.85rem;
@@ -220,17 +228,63 @@
 
     .tab-btn.active {
       background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-      box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);
     }
 
+    /* 功能工具按鈕組 */
     .action-toolbar {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
     }
 
+    .btn {
+      background-color: #ffffff;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background-color: #f8fafc;
+    }
+
+    .btn-primary { background-color: var(--accent); color: #ffffff; border: none; }
+    .btn-primary:hover { background-color: var(--accent-hover); color: #ffffff; }
+
+    .btn-success { background-color: var(--success); color: #ffffff; border: none; }
+    .btn-success:hover { background-color: #047857; color: #ffffff; }
+
+    /* 使用者資訊區 */
+    .user-profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .user-email {
+      font-size: 0.82rem;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    /* 工作表標籤列 */
     .sheet-bar {
       display: flex;
       align-items: center;
@@ -250,7 +304,7 @@
       gap: 6px;
       background: #ffffff;
       color: var(--text-muted);
-      padding: 4px 12px;
+      padding: 5px 14px;
       border-radius: 6px;
       font-size: 0.85rem;
       font-weight: 700;
@@ -261,7 +315,7 @@
 
     .sheet-tab.active {
       background: var(--accent);
-      color: #fff;
+      color: #ffffff;
       border-color: var(--accent);
     }
 
@@ -283,24 +337,6 @@
     }
 
     .tab-content.active { display: flex; flex-direction: column; }
-
-    .btn {
-      background-color: #ffffff;
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      padding: 5px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 0.82rem;
-      transition: all 0.2s;
-    }
-
-    .btn:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-primary { background-color: var(--accent); color: #fff; border: none; }
-    .btn-primary:hover { background-color: var(--accent-hover); color: #fff; }
-    .btn-success { background-color: var(--success); color: #fff; border: none; }
-    .btn-success:hover { background-color: #047857; color: #fff; }
 
     .table-scroll-container {
       flex: 1;
@@ -354,18 +390,18 @@
     .progress-container {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       width: 100%;
-      min-width: 120px;
+      min-width: 110px;
     }
 
     .progress-bar-bg {
       flex: 1;
       background: #e2e8f0;
       border-radius: 6px;
-      height: 12px;
+      height: 10px;
       overflow: hidden;
-      border: 1px solid var(--border-color);
+      border: 1px solid #cbd5e1;
       position: relative;
     }
 
@@ -380,7 +416,7 @@
       font-size: 0.8rem;
       font-weight: 800;
       color: var(--accent);
-      min-width: 38px;
+      min-width: 36px;
       text-align: right;
     }
 
@@ -412,7 +448,7 @@
       background: #f8fafc;
     }
 
-    /* === 專案進度分析儀表板樣式 === */
+    /* === 專案進度分析儀表板樣式 (圖1細分對應修正) === */
     .dashboard-container {
       padding: 16px;
       overflow-y: auto;
@@ -424,7 +460,7 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px;
     }
 
@@ -432,21 +468,31 @@
       background: #f8fafc;
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 16px;
+      padding: 14px;
       text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
     .stat-card .title {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
       font-weight: 700;
       margin-bottom: 4px;
     }
 
     .stat-card .value {
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       font-weight: 800;
       color: var(--text-main);
+    }
+
+    .stat-sub {
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 4px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
     }
 
     .chart-section {
@@ -457,7 +503,7 @@
     }
 
     .chart-title {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 800;
       color: #0f172a;
       margin-bottom: 12px;
@@ -490,25 +536,27 @@
   </div>
 
   <div class="app-container">
+    <!-- 美化後的頂部 Header 與按鈕列 (對應圖2需求) -->
     <header>
       <div class="brand-title">
         <img id="app-logo" class="brand-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>" alt="Logo" title="雙擊可更改圖片網址">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="brand-text-group">
+          <div class="title-badge-row">
             <h1>Filament Outsource Tracing</h1>
-            <span class="badge-pro">CLOUD ENTERPRISE</span>
+            <span class="badge-pro">ENTERPRISE</span>
           </div>
           <span id="sync-indicator" class="sync-status">● 最後更新: 無紀錄</span>
         </div>
       </div>
 
-      <!-- 控制按鈕往上方移動 -->
       <div class="header-controls">
+        <!-- 頁籤切換按鈕組 -->
         <div class="nav-tabs">
           <button class="tab-btn active" onclick="switchTab('tracker-tab')">📋 專案進度追蹤表</button>
           <button class="tab-btn" onclick="switchTab('analytics-tab')">📊 專案進度分析圖表</button>
         </div>
 
+        <!-- 功能動作按鈕組 -->
         <div class="action-toolbar">
           <button id="add-row-btn" class="btn btn-primary">➕ 新增列</button>
           <button id="add-col-btn" class="btn btn-primary">➕ 新增欄位</button>
@@ -517,13 +565,15 @@
           <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;">
         </div>
 
-        <div class="user-info">
+        <!-- 使用者個人資訊 -->
+        <div class="user-profile-badge">
           <span id="user-display" class="user-email"></span>
-          <button id="logout-btn" class="btn" style="display: none;">登出</button>
+          <button id="logout-btn" class="btn" style="padding: 2px 8px; font-size: 0.78rem; display: none;">登出</button>
         </div>
       </div>
     </header>
 
+    <!-- 工作表 Tab 標籤列 -->
     <div class="sheet-bar">
       <div id="sheets-container" style="display: flex; gap: 6px;"></div>
       <button id="add-sheet-btn" class="btn" style="padding: 2px 8px; font-size: 0.8rem;" title="新增工作表">+ 新增工作表</button>
@@ -540,9 +590,10 @@
       </div>
     </div>
 
-    <!-- 頁籤 2: 專案進度分析圖表 -->
+    <!-- 頁籤 2: 專案進度分析圖表 (對應圖1細分需求) -->
     <div id="analytics-tab" class="tab-content">
       <div class="dashboard-container">
+        <!-- 頂部重點指標卡片組 -->
         <div class="stats-grid">
           <div class="stat-card">
             <div class="title">總品號數量</div>
@@ -553,17 +604,34 @@
             <div id="stat-total-tasks" class="value">0</div>
           </div>
           <div class="stat-card">
-            <div class="title" style="color: var(--success);">已完成件數</div>
-            <div id="stat-completed-tasks" class="value" style="color: var(--success);">0</div>
+            <div class="title">📐 圖面進度完成率</div>
+            <div id="stat-drawing-rate" class="value" style="color: var(--accent);">0%</div>
+            <div class="stat-sub">
+              <span style="color: var(--success);" id="stat-drawing-done">已完成: 0</span>
+              <span style="color: var(--warning);" id="stat-drawing-pending">未完成: 0</span>
+            </div>
           </div>
           <div class="stat-card">
-            <div class="title" style="color: var(--warning);">未完成件數</div>
-            <div id="stat-pending-tasks" class="value" style="color: var(--warning);">0</div>
+            <div class="title">⚙️ 大東加工完成率</div>
+            <div id="stat-machining-rate" class="value" style="color: var(--accent);">0%</div>
+            <div class="stat-sub">
+              <span style="color: var(--success);" id="stat-machining-done">已完成: 0</span>
+              <span style="color: var(--warning);" id="stat-machining-pending">未完成: 0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="title">🔍 檢具進度完成率</div>
+            <div id="stat-gauge-rate" class="value" style="color: var(--accent);">0%</div>
+            <div class="stat-sub">
+              <span style="color: var(--success);" id="stat-gauge-done">已完成: 0</span>
+              <span style="color: var(--warning);" id="stat-gauge-pending">未完成: 0</span>
+            </div>
           </div>
         </div>
 
+        <!-- 各品號/貨號細分進度統計總表 (圖1欄位更細分) -->
         <div class="chart-section">
-          <div class="chart-title">📌 各品號 / 貨號進度分析彙總表</div>
+          <div class="chart-title">📌 各品號 / 貨號進度分析彙總表 (含三大關卡細分)</div>
           <div class="table-scroll-container">
             <table>
               <thead>
@@ -571,8 +639,9 @@
                   <th>品號</th>
                   <th>貨號</th>
                   <th style="text-align: center;">總件數</th>
-                  <th style="text-align: center; color: var(--success);">已完成件數</th>
-                  <th style="text-align: center; color: var(--warning);">未完成件數</th>
+                  <th style="text-align: center;">圖面進度 %<br><small style="font-weight: normal;">(完成/未完)</small></th>
+                  <th style="text-align: center;">大東加工進度 %<br><small style="font-weight: normal;">(完成/未完)</small></th>
+                  <th style="text-align: center;">檢具進度 %<br><small style="font-weight: normal;">(完成/未完)</small></th>
                   <th>整體完成進度</th>
                   <th>備註</th>
                 </tr>
@@ -625,27 +694,27 @@
   const defaultColumns = [
     { key: "itemNo", label: "品號", isSystem: false },
     { key: "sku", label: "貨號", isSystem: false },
-    { key: "purchaseNo", label: "採購料號", isSystem: false },
-    { key: "startDate", label: "開始日期", isSystem: false },
-    { key: "endDate", label: "結束日期", isSystem: false },
-    { key: "progress", label: "進度 (%)", isSystem: false },
+    { key: "drawingProg", label: "圖面進度 (%)", isSystem: false },
+    { key: "machiningProg", label: "大東加工進度 (%)", isSystem: false },
+    { key: "gaugeProg", label: "檢具進度 (%)", isSystem: false },
+    { key: "progress", label: "整體進度 (%)", isSystem: false },
     { key: "status", label: "狀態", isSystem: false }
   ];
 
   const imgData = [
-    { sku: "FVSE-0036-4", itemNo: "10091-VWNE000", purchaseNo: "50001-111" },
-    { sku: "FVSE-0525-4", itemNo: "10021-VWNE000", purchaseNo: "50001-112" },
-    { sku: "FVSE-0032-4", itemNo: "14967-VWNE001", purchaseNo: "50001-113" },
-    { sku: "FV80-0433", itemNo: "10207-FWTE000", purchaseNo: "50001-115" }
+    { sku: "FVSE-0036-4", itemNo: "10091-VWNE000" },
+    { sku: "FVSE-0525-4", itemNo: "10021-VWNE000" },
+    { sku: "FVSE-0032-4", itemNo: "14967-VWNE001" },
+    { sku: "FV80-0433", itemNo: "10207-FWTE000" }
   ];
 
   const initialData = imgData.map(item => ({
     itemNo: item.itemNo,
     sku: item.sku,
-    purchaseNo: item.purchaseNo,
-    startDate: "2026-03-01",
-    endDate: "2026-03-15",
-    progress: 35,
+    drawingProg: 100,
+    machiningProg: 50,
+    gaugeProg: 0,
+    progress: 50,
     status: "進行中"
   }));
 
@@ -808,7 +877,7 @@
 
   function isProgressCol(col) {
     if (!col) return false;
-    const keyMatch = col.key === 'progress';
+    const keyMatch = col.key.toLowerCase().includes('prog') || col.key === 'progress';
     const labelMatch = col.label && (col.label.includes('進度') || col.label.includes('%'));
     return keyMatch || labelMatch;
   }
@@ -913,7 +982,6 @@
 
     thead.querySelectorAll('.th-col').forEach(th => {
       const index = Number(th.getAttribute('data-index'));
-      
       th.ondblclick = () => editColumnLabel(index);
       const delBtn = th.querySelector('.del-col-btn');
       if (delBtn) delBtn.onclick = (e) => deleteColumn(sheet.columns[index].key, e);
@@ -981,39 +1049,52 @@
     });
   }
 
-  // --- 專案進度分析圖表渲染邏輯 ---
+  // --- 專案進度分析圖表細分渲染邏輯 (對應圖1細分需求) ---
   function renderAnalytics() {
     const sheet = getActiveSheet();
     if (!sheet || !sheet.data) return;
 
     let totalTasks = sheet.data.length;
-    let completedTasks = 0;
-    let pendingTasks = 0;
+    
+    // 三大關卡計數器
+    let drawingDone = 0, drawingPending = 0;
+    let machiningDone = 0, machiningPending = 0;
+    let gaugeDone = 0, gaugePending = 0;
 
     const itemMap = {};
 
     sheet.data.forEach(row => {
       const itemNo = row.itemNo || '未分類';
       const sku = row.sku || '-';
-      const isDone = row.status === '已完成' || row.progress == 100;
 
-      if (isDone) completedTasks++;
-      else pendingTasks++;
+      // 判斷各關卡完成度 (以 100% 視為已完成)
+      const isDrawingDone = (parseInt(row.drawingProg) || 0) === 100;
+      const isMachiningDone = (parseInt(row.machiningProg) || 0) === 100;
+      const isGaugeDone = (parseInt(row.gaugeProg) || 0) === 100;
+
+      if (isDrawingDone) drawingDone++; else drawingPending++;
+      if (isMachiningDone) machiningDone++; else machiningPending++;
+      if (isGaugeDone) gaugeDone++; else gaugePending++;
 
       if (!itemMap[itemNo]) {
         itemMap[itemNo] = {
           itemNo: itemNo,
           sku: sku,
           total: 0,
-          completed: 0,
-          pending: 0,
+          drawingDone: 0, drawingPending: 0,
+          machiningDone: 0, machiningPending: 0,
+          gaugeDone: 0, gaugePending: 0,
+          totalProgSum: 0,
           notes: []
         };
       }
 
       itemMap[itemNo].total++;
-      if (isDone) itemMap[itemNo].completed++;
-      else itemMap[itemNo].pending++;
+      if (isDrawingDone) itemMap[itemNo].drawingDone++; else itemMap[itemNo].drawingPending++;
+      if (isMachiningDone) itemMap[itemNo].machiningDone++; else itemMap[itemNo].machiningPending++;
+      if (isGaugeDone) itemMap[itemNo].gaugeDone++; else itemMap[itemNo].gaugePending++;
+      
+      itemMap[itemNo].totalProgSum += (parseInt(row.progress) || 0);
 
       if (row.purchaseNo && row.purchaseNo !== '-') {
         itemMap[itemNo].notes.push(row.purchaseNo);
@@ -1022,29 +1103,60 @@
 
     const uniqueItemsCount = Object.keys(itemMap).length;
 
+    // 計算各關卡達成率百分比
+    const drawingRate = totalTasks > 0 ? Math.round((drawingDone / totalTasks) * 100) : 0;
+    const machiningRate = totalTasks > 0 ? Math.round((machiningDone / totalTasks) * 100) : 0;
+    const gaugeRate = totalTasks > 0 ? Math.round((gaugeDone / totalTasks) * 100) : 0;
+
+    // 更新頂部卡片數據
     document.getElementById('stat-total-items').textContent = uniqueItemsCount;
     document.getElementById('stat-total-tasks').textContent = totalTasks;
-    document.getElementById('stat-completed-tasks').textContent = completedTasks;
-    document.getElementById('stat-pending-tasks').textContent = pendingTasks;
 
+    document.getElementById('stat-drawing-rate').textContent = `${drawingRate}%`;
+    document.getElementById('stat-drawing-done').textContent = `已完成: ${drawingDone}`;
+    document.getElementById('stat-drawing-pending').textContent = `未完成: ${drawingPending}`;
+
+    document.getElementById('stat-machining-rate').textContent = `${machiningRate}%`;
+    document.getElementById('stat-machining-done').textContent = `已完成: ${machiningDone}`;
+    document.getElementById('stat-machining-pending').textContent = `未完成: ${machiningPending}`;
+
+    document.getElementById('stat-gauge-rate').textContent = `${gaugeRate}%`;
+    document.getElementById('stat-gauge-done').textContent = `已完成: ${gaugeDone}`;
+    document.getElementById('stat-gauge-pending').textContent = `未完成: ${gaugePending}`;
+
+    // 渲染細分表格
     const analyticsBody = document.getElementById('analytics-table-body');
     analyticsBody.innerHTML = '';
 
     Object.values(itemMap).forEach(item => {
-      const pct = item.total > 0 ? Math.round((item.completed / item.total) * 100) : 0;
+      const drawingPct = item.total > 0 ? Math.round((item.drawingDone / item.total) * 100) : 0;
+      const machiningPct = item.total > 0 ? Math.round((item.machiningDone / item.total) * 100) : 0;
+      const gaugePct = item.total > 0 ? Math.round((item.gaugeDone / item.total) * 100) : 0;
+      const avgOverallPct = item.total > 0 ? Math.round(item.totalProgSum / item.total) : 0;
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><strong>${item.itemNo}</strong></td>
         <td>${item.sku}</td>
         <td style="text-align: center;">${item.total}</td>
-        <td style="text-align: center; color: var(--success);">${item.completed}</td>
-        <td style="text-align: center; color: var(--warning);">${item.pending}</td>
+        <td style="text-align: center;">
+          <strong style="color: var(--accent);">${drawingPct}%</strong>
+          <br><small style="color: var(--text-muted);">(${item.drawingDone}/${item.drawingPending})</small>
+        </td>
+        <td style="text-align: center;">
+          <strong style="color: var(--accent);">${machiningPct}%</strong>
+          <br><small style="color: var(--text-muted);">(${item.machiningDone}/${item.machiningPending})</small>
+        </td>
+        <td style="text-align: center;">
+          <strong style="color: var(--accent);">${gaugePct}%</strong>
+          <br><small style="color: var(--text-muted);">(${item.gaugeDone}/${item.gaugePending})</small>
+        </td>
         <td>
           <div class="progress-container">
             <div class="progress-bar-bg">
-              <div class="progress-bar-fill" style="width: ${pct}%;"></div>
+              <div class="progress-bar-fill" style="width: ${avgOverallPct}%;"></div>
             </div>
-            <span class="progress-text">${pct}%</span>
+            <span class="progress-text">${avgOverallPct}%</span>
           </div>
         </td>
         <td>${item.notes.length > 0 ? '料號: ' + item.notes.slice(0, 2).join(', ') : '-'}</td>
@@ -1088,8 +1200,11 @@
       if (isProg) {
         const parsedVal = Math.min(100, Math.max(0, parseInt(newVal) || 0));
         sheet.data[index][key] = parsedVal;
-        if (parsedVal === 100) sheet.data[index].status = "已完成";
-        else if (parsedVal > 0 && sheet.data[index].status === "未開始") sheet.data[index].status = "進行中";
+        
+        if (key === 'progress') {
+          if (parsedVal === 100) sheet.data[index].status = "已完成";
+          else if (parsedVal > 0 && sheet.data[index].status === "未開始") sheet.data[index].status = "進行中";
+        }
       } else {
         sheet.data[index][key] = newVal.trim();
       }

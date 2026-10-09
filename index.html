@@ -681,7 +681,6 @@
   const userDisplay = document.getElementById('user-display');
   const logoutBtn = document.getElementById('logout-btn');
 
-  // 僅保留第一個核心「整體進度%」，並設定鎖定防護
   const defaultColumns = [
     { key: "itemNo", label: "品號", isSystem: false },
     { key: "sku", label: "貨號", isSystem: false },
@@ -789,6 +788,25 @@
   if (cachedData) {
     try {
       appState = JSON.parse(cachedData);
+      // 清理快取中重複的整體進度欄位
+      if (appState && appState.workbook) {
+        appState.workbook.forEach(sh => {
+          if (sh.columns) {
+            let kept = false;
+            sh.columns = sh.columns.filter(c => {
+              const lbl = (c.label || '').replace(/[\(\)%\s]/g, '');
+              if (lbl.includes('整體進度')) {
+                if (kept) return false;
+                kept = true;
+                c.label = '整體進度%';
+                c.key = 'progress';
+                c.locked = true;
+              }
+              return true;
+            });
+          }
+        });
+      }
     } catch(e) { console.error("快取解析失敗", e); }
   }
   renderApp();
@@ -811,24 +829,29 @@
         }
         if (!appState.logoUrl) appState.logoUrl = defaultLogo;
         
-        // 清理重複的整體進度欄位，僅保留唯一的一個
+        // 強制清理重複的「整體進度%」欄位，只保留第一個
         appState.workbook.forEach(sh => {
           if (!sh.columns) sh.columns = JSON.parse(JSON.stringify(defaultColumns));
           
-          // 過濾掉名稱含「整體進度%」但重複的欄位
-          let seenOverall = false;
-          sh.columns = sh.columns.filter(c => {
-            if (c.label === "整體進度%" || c.key === "progress") {
-              if (seenOverall) return false;
-              seenOverall = true;
-              c.locked = true;
+          let firstProgIndex = -1;
+          sh.columns = sh.columns.filter((c, idx) => {
+            const lbl = (c.label || '').replace(/[\(\)%\s]/g, '');
+            if (lbl.includes('整體進度')) {
+              if (firstProgIndex === -1) {
+                firstProgIndex = idx;
+                c.label = '整體進度%';
+                c.key = 'progress';
+                c.locked = true;
+                return true;
+              }
+              return false; // 過濾掉後面重複的
             }
             return true;
           });
 
-          // 確保 4 個核心固定欄位完整存在
+          // 確保 4 個核心欄位完整存在
           defaultColumns.forEach(defCol => {
-            let found = sh.columns.find(c => c.key === defCol.key || c.label === defCol.label);
+            let found = sh.columns.find(c => c.key === defCol.key || (c.label || '').replace(/[\(\)%\s]/g, '') === defCol.label.replace(/[\(\)%\s]/g, ''));
             if (!found) {
               sh.columns.push(JSON.parse(JSON.stringify(defCol)));
             } else {
@@ -1085,13 +1108,13 @@
     let skuKey = null;
 
     sheet.columns.forEach(col => {
-      const label = col.label || '';
+      const label = (col.label || '').replace(/[\(\)%\s]/g, '');
       if (label.includes('品號') || col.key === 'itemNo') itemNoKey = col.key;
       else if (label.includes('貨號') || col.key === 'sku') skuKey = col.key;
-      else if (label.includes('圖面進度%')) drawingKey = col.key;
-      else if (label.includes('大東加工進度%')) machiningKey = col.key;
-      else if (label.includes('檢具進度%')) gaugeKey = col.key;
-      else if (label.includes('整體進度%') || col.key === 'progress') overallKey = col.key;
+      else if (label.includes('圖面進度')) drawingKey = col.key;
+      else if (label.includes('大東加工進度')) machiningKey = col.key;
+      else if (label.includes('檢具進度')) gaugeKey = col.key;
+      else if (label.includes('整體進度') || col.key === 'progress') overallKey = col.key;
     });
 
     const isCompleted = (val) => {
@@ -1379,16 +1402,16 @@
         const headerRow = worksheet.getRow(1);
         headerRow.eachCell((cell, colNumber) => {
           const label = cell.value ? cell.value.toString() : `欄位_${colNumber}`;
-          let matchedDef = defaultColumns.find(d => d.label === label);
+          const cleanLbl = label.replace(/[\(\)%\s]/g, '');
+          let matchedDef = defaultColumns.find(d => d.label.replace(/[\(\)%\s]/g, '') === cleanLbl);
           if (matchedDef) {
-            // 確保唯一性，整體進度只加入一次
-            if (label !== "整體進度%" || !newColumns.find(c => c.label === "整體進度%")) {
+            if (!newColumns.find(c => c.key === matchedDef.key)) {
               newColumns.push(JSON.parse(JSON.stringify(matchedDef)));
             }
           } else {
             newColumns.push({
               key: `col_${colNumber}`,
-              label: label,
+              label: label.trim(),
               isSystem: false,
               locked: false
             });
@@ -1396,7 +1419,7 @@
         });
 
         defaultColumns.forEach(defCol => {
-          if (!newColumns.find(c => c.label === defCol.label)) {
+          if (!newColumns.find(c => c.key === defCol.key)) {
             newColumns.push(JSON.parse(JSON.stringify(defCol)));
           }
         });

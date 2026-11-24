@@ -6,6 +6,8 @@
   <title>Filament Outsource Tracing - Cloud Version</title>
   <!-- 引入 ExcelJS 套件以支援 Excel 匯入與匯出 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <!-- 引入 Chart.js 繪製視覺化圖表 (支援完美轉存為高解析圖片供 PDF 嵌入) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --bg-color: #ffffff;
@@ -200,7 +202,7 @@
     .header-controls {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
@@ -217,7 +219,7 @@
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 6px 16px;
+      padding: 6px 14px;
       border-radius: 6px;
       font-weight: 700;
       font-size: 0.85rem;
@@ -233,7 +235,7 @@
 
     .action-toolbar {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
     }
 
@@ -241,11 +243,11 @@
       background-color: #ffffff;
       color: var(--text-main);
       border: 1px solid var(--border-color);
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.83rem;
       transition: all 0.2s;
       display: inline-flex;
       align-items: center;
@@ -265,10 +267,20 @@
     .btn-success { background-color: var(--success); color: #ffffff; border: none; }
     .btn-success:hover { background-color: #047857; color: #ffffff; }
 
+    .btn-pdf {
+      background: linear-gradient(135deg, #be123c, #e11d48);
+      color: #ffffff;
+      border: none;
+    }
+    .btn-pdf:hover {
+      background: linear-gradient(135deg, #9f1239, #be123c);
+      color: #ffffff;
+    }
+
     .user-profile-badge {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       background: #f8fafc;
       padding: 4px 10px;
       border-radius: 8px;
@@ -492,6 +504,28 @@
       gap: 8px;
     }
 
+    /* 視覺化圖表區 */
+    .charts-visual-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }
+
+    .chart-box {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-canvas-wrapper {
+      position: relative;
+      height: 240px;
+      width: 100%;
+    }
+
     .chart-section {
       background: #ffffff;
       border: 1px solid var(--border-color);
@@ -507,6 +541,224 @@
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    /* =====================================================================
+       專業版 PDF 集中排版列印專屬樣式 (@media print)
+       ===================================================================== */
+    #print-report-container {
+      display: none;
+    }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 10mm 12mm;
+      }
+
+      html, body {
+        height: auto !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .app-container, .auth-overlay {
+        display: none !important;
+      }
+
+      #print-report-container {
+        display: block !important;
+        width: 100%;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        color: #0f172a;
+      }
+
+      .pdf-cover-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 3px solid #0284c7;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+
+      .pdf-cover-title h1 {
+        font-size: 18pt;
+        margin: 0;
+        color: #0f172a;
+        font-weight: 800;
+      }
+
+      .pdf-cover-title p {
+        margin: 2px 0 0 0;
+        font-size: 9pt;
+        color: #475569;
+        font-weight: 600;
+      }
+
+      .pdf-meta-box {
+        text-align: right;
+        font-size: 8.5pt;
+        color: #334155;
+        line-height: 1.4;
+      }
+
+      /* 集中緊湊型工作表區塊 */
+      .pdf-sheet-section {
+        margin-bottom: 18px;
+        page-break-inside: auto;
+      }
+
+      .pdf-sheet-section.page-break {
+        page-break-before: always;
+      }
+
+      .pdf-sheet-banner {
+        background: #0f172a;
+        color: #ffffff;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 11pt;
+        font-weight: 800;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      /* 集中式 KPI 摘要列 (5欄緊湊並排) */
+      .pdf-kpi-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .pdf-kpi-card {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 5px;
+        padding: 6px 8px;
+        text-align: center;
+      }
+
+      .pdf-kpi-card .k-title {
+        font-size: 7.5pt;
+        color: #475569;
+        font-weight: 700;
+      }
+
+      .pdf-kpi-card .k-val {
+        font-size: 13pt;
+        font-weight: 800;
+        color: #0284c7;
+        margin: 2px 0;
+      }
+
+      .pdf-kpi-card .k-sub {
+        font-size: 7pt;
+        color: #334155;
+        font-weight: 600;
+      }
+
+      /* 集中式雙圖表並排區 */
+      .pdf-charts-row {
+        display: grid;
+        grid-template-columns: 64% 34%;
+        gap: 2%;
+        margin-bottom: 10px;
+        page-break-inside: avoid;
+      }
+
+      .pdf-chart-card {
+        border: 1px solid #cbd5e1;
+        border-radius: 5px;
+        padding: 6px 8px;
+        background: #ffffff;
+        text-align: center;
+      }
+
+      .pdf-chart-card h4 {
+        margin: 0 0 4px 0;
+        font-size: 8.5pt;
+        color: #0f172a;
+        text-align: left;
+      }
+
+      .pdf-chart-card img {
+        max-width: 100%;
+        height: 155px;
+        object-fit: contain;
+      }
+
+      /* 集中緊湊表格樣式 */
+      .pdf-sub-heading {
+        font-size: 9.5pt;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 8px 0 4px 0;
+        border-left: 3px solid #0284c7;
+        padding-left: 6px;
+      }
+
+      .pdf-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 8pt;
+        margin-bottom: 10px;
+      }
+
+      .pdf-table th {
+        background-color: #e2e8f0 !important;
+        color: #0f172a !important;
+        font-weight: 800;
+        padding: 4px 6px;
+        border: 1px solid #94a3b8;
+        position: static !important;
+        font-size: 7.8pt;
+      }
+
+      .pdf-table td {
+        padding: 3px 6px;
+        border: 1px solid #cbd5e1;
+        font-size: 7.8pt;
+        line-height: 1.25;
+      }
+
+      .pdf-table tr {
+        page-break-inside: avoid;
+      }
+
+      .pdf-prog-wrap {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .pdf-prog-bar {
+        flex: 1;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      .pdf-prog-fill {
+        height: 100%;
+        background: #0284c7;
+      }
+
+      .pdf-footer {
+        margin-top: 10px;
+        padding-top: 6px;
+        border-top: 1px solid #cbd5e1;
+        display: flex;
+        justify-content: space-between;
+        font-size: 7.5pt;
+        color: #64748b;
+      }
     }
   </style>
 </head>
@@ -556,6 +808,7 @@
           <button id="add-col-btn" class="btn btn-primary">➕ 新增欄位</button>
           <button id="export-excel-btn" class="btn btn-success">📥 匯出 Excel</button>
           <button id="import-excel-btn" class="btn">📤 匯入 Excel</button>
+          <button id="export-pdf-btn" class="btn btn-pdf" title="匯出包含所有工作表、分析圖表與明細的專業版集中排版 PDF">📄 匯出專業版 PDF</button>
           <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;">
         </div>
 
@@ -620,6 +873,22 @@
           </div>
         </div>
 
+        <!-- 視覺化圖表區 -->
+        <div class="charts-visual-grid">
+          <div class="chart-box">
+            <div class="chart-title">📊 各品號三大關卡進度對比圖</div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="stage-bar-chart"></canvas>
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-title">🍩 整體專案狀態分佈</div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="status-doughnut-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
         <div class="chart-section">
           <div class="chart-title">📌 各品號 / 貨號進度分析彙總表 (含三大關卡細分)</div>
           <div class="table-scroll-container">
@@ -643,6 +912,9 @@
       </div>
     </div>
   </div>
+
+  <!-- 專業版 PDF 集中排版列印專屬容器 -->
+  <div id="print-report-container"></div>
 
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -723,6 +995,8 @@
   let activeSheetId = "sheet_1";
   let isCloudLoaded = false;
   let userDbRef = null;
+  let stageBarChartInstance = null;
+  let statusDoughnutChartInstance = null;
 
   const logoEl = document.getElementById('app-logo');
   const syncIndicator = document.getElementById('sync-indicator');
@@ -788,7 +1062,6 @@
   if (cachedData) {
     try {
       appState = JSON.parse(cachedData);
-      // 清理快取中重複的整體進度欄位
       if (appState && appState.workbook) {
         appState.workbook.forEach(sh => {
           if (sh.columns) {
@@ -829,7 +1102,6 @@
         }
         if (!appState.logoUrl) appState.logoUrl = defaultLogo;
         
-        // 強制清理重複的「整體進度%」欄位，只保留第一個
         appState.workbook.forEach(sh => {
           if (!sh.columns) sh.columns = JSON.parse(JSON.stringify(defaultColumns));
           
@@ -844,12 +1116,11 @@
                 c.locked = true;
                 return true;
               }
-              return false; // 過濾掉後面重複的
+              return false;
             }
             return true;
           });
 
-          // 確保 4 個核心欄位完整存在
           defaultColumns.forEach(defCol => {
             let found = sh.columns.find(c => c.key === defCol.key || (c.label || '').replace(/[\(\)%\s]/g, '') === defCol.label.replace(/[\(\)%\s]/g, ''));
             if (!found) {
@@ -1093,21 +1364,15 @@
     });
   }
 
-  // --- 分析圖表連動邏輯 ---
-  function renderAnalytics() {
-    const sheet = getActiveSheet();
-    if (!sheet || !sheet.data) return;
+  // 共用統計分析計算函式 (支援單一工作表計算，供介面與 PDF 匯出同步調用)
+  function computeSheetMetrics(sheet) {
+    const data = sheet.data || [];
+    const cols = sheet.columns || [];
+    let totalTasks = data.length;
 
-    let totalTasks = sheet.data.length;
+    let drawingKey = null, machiningKey = null, gaugeKey = null, overallKey = null, itemNoKey = null, skuKey = null;
 
-    let drawingKey = null;
-    let machiningKey = null;
-    let gaugeKey = null;
-    let overallKey = null;
-    let itemNoKey = null;
-    let skuKey = null;
-
-    sheet.columns.forEach(col => {
+    cols.forEach(col => {
       const label = (col.label || '').replace(/[\(\)%\s]/g, '');
       if (label.includes('品號') || col.key === 'itemNo') itemNoKey = col.key;
       else if (label.includes('貨號') || col.key === 'sku') skuKey = col.key;
@@ -1119,18 +1384,18 @@
 
     const isCompleted = (val) => {
       if (val === undefined || val === null) return false;
-      const strVal = String(val).replace('%', '').trim();
-      const num = parseInt(strVal, 10);
+      const num = parseInt(String(val).replace('%', '').trim(), 10);
       return !isNaN(num) && num >= 100;
     };
 
     let drawingDone = 0, drawingPending = 0;
     let machiningDone = 0, machiningPending = 0;
     let gaugeDone = 0, gaugePending = 0;
+    let statusCounts = { done: 0, doing: 0, todo: 0 };
 
     const itemMap = {};
 
-    sheet.data.forEach(row => {
+    data.forEach(row => {
       const itemNo = (itemNoKey && row[itemNoKey]) ? row[itemNoKey] : '未分類';
       const sku = (skuKey && row[skuKey]) ? row[skuKey] : '-';
 
@@ -1142,16 +1407,19 @@
       if (isMachiningDone) machiningDone++; else machiningPending++;
       if (isGaugeDone) gaugeDone++; else gaugePending++;
 
+      const progVal = overallKey ? (parseInt(String(row[overallKey]).replace('%',''), 10) || 0) : 0;
+      const st = row.status || '';
+      if (st === '已完成' || progVal >= 100) statusCounts.done++;
+      else if (st === '進行中' || progVal > 0) statusCounts.doing++;
+      else statusCounts.todo++;
+
       if (!itemMap[itemNo]) {
         itemMap[itemNo] = {
-          itemNo: itemNo,
-          sku: sku,
-          total: 0,
+          itemNo, sku, total: 0,
           drawingDone: 0, drawingPending: 0,
           machiningDone: 0, machiningPending: 0,
           gaugeDone: 0, gaugePending: 0,
-          totalProgSum: 0,
-          notes: []
+          totalProgSum: 0, notes: []
         };
       }
 
@@ -1159,8 +1427,6 @@
       if (isDrawingDone) itemMap[itemNo].drawingDone++; else itemMap[itemNo].drawingPending++;
       if (isMachiningDone) itemMap[itemNo].machiningDone++; else itemMap[itemNo].machiningPending++;
       if (isGaugeDone) itemMap[itemNo].gaugeDone++; else itemMap[itemNo].gaugePending++;
-
-      const progVal = overallKey ? (parseInt(String(row[overallKey]).replace('%',''), 10) || 0) : 0;
       itemMap[itemNo].totalProgSum += progVal;
 
       if (row.purchaseNo && row.purchaseNo !== '-') {
@@ -1168,59 +1434,80 @@
       }
     });
 
-    const uniqueItemsCount = Object.keys(itemMap).length;
+    const itemsList = Object.values(itemMap).map(item => ({
+      ...item,
+      drawingPct: item.total > 0 ? Math.round((item.drawingDone / item.total) * 100) : 0,
+      machiningPct: item.total > 0 ? Math.round((item.machiningDone / item.total) * 100) : 0,
+      gaugePct: item.total > 0 ? Math.round((item.gaugeDone / item.total) * 100) : 0,
+      avgOverallPct: item.total > 0 ? Math.round(item.totalProgSum / item.total) : 0
+    }));
 
-    const drawingRate = totalTasks > 0 ? Math.round((drawingDone / totalTasks) * 100) : 0;
-    const machiningRate = totalTasks > 0 ? Math.round((machiningDone / totalTasks) * 100) : 0;
-    const gaugeRate = totalTasks > 0 ? Math.round((gaugeDone / totalTasks) * 100) : 0;
+    return {
+      uniqueItemsCount: itemsList.length,
+      totalTasks,
+      drawingRate: totalTasks > 0 ? Math.round((drawingDone / totalTasks) * 100) : 0,
+      drawingDone, drawingPending,
+      machiningRate: totalTasks > 0 ? Math.round((machiningDone / totalTasks) * 100) : 0,
+      machiningDone, machiningPending,
+      gaugeRate: totalTasks > 0 ? Math.round((gaugeDone / totalTasks) * 100) : 0,
+      gaugeDone, gaugePending,
+      statusCounts,
+      itemsList
+    };
+  }
 
-    document.getElementById('stat-total-items').textContent = uniqueItemsCount;
-    document.getElementById('stat-total-tasks').textContent = totalTasks;
+  // --- 分析圖表連動邏輯 ---
+  function renderAnalytics() {
+    const sheet = getActiveSheet();
+    if (!sheet || !sheet.data) return;
 
-    document.getElementById('stat-drawing-rate').textContent = `${drawingRate}%`;
-    document.getElementById('stat-drawing-done').textContent = `已完成: ${drawingDone}`;
-    document.getElementById('stat-drawing-pending').textContent = `未完成: ${drawingPending}`;
+    const m = computeSheetMetrics(sheet);
 
-    document.getElementById('stat-machining-rate').textContent = `${machiningRate}%`;
-    document.getElementById('stat-machining-done').textContent = `已完成: ${machiningDone}`;
-    document.getElementById('stat-machining-pending').textContent = `未完成: ${machiningPending}`;
+    document.getElementById('stat-total-items').textContent = m.uniqueItemsCount;
+    document.getElementById('stat-total-tasks').textContent = m.totalTasks;
 
-    document.getElementById('stat-gauge-rate').textContent = `${gaugeRate}%`;
-    document.getElementById('stat-gauge-done').textContent = `已完成: ${gaugeDone}`;
-    document.getElementById('stat-gauge-pending').textContent = `未完成: ${gaugePending}`;
+    document.getElementById('stat-drawing-rate').textContent = `${m.drawingRate}%`;
+    document.getElementById('stat-drawing-done').textContent = `已完成: ${m.drawingDone}`;
+    document.getElementById('stat-drawing-pending').textContent = `未完成: ${m.drawingPending}`;
+
+    document.getElementById('stat-machining-rate').textContent = `${m.machiningRate}%`;
+    document.getElementById('stat-machining-done').textContent = `已完成: ${m.machiningDone}`;
+    document.getElementById('stat-machining-pending').textContent = `未完成: ${m.machiningPending}`;
+
+    document.getElementById('stat-gauge-rate').textContent = `${m.gaugeRate}%`;
+    document.getElementById('stat-gauge-done').textContent = `已完成: ${m.gaugeDone}`;
+    document.getElementById('stat-gauge-pending').textContent = `未完成: ${m.gaugePending}`;
+
+    // 更新視覺化 Chart.js 圖表
+    renderDashboardCharts(m);
 
     const analyticsBody = document.getElementById('analytics-table-body');
     analyticsBody.innerHTML = '';
 
-    Object.values(itemMap).forEach(item => {
-      const drawingPct = item.total > 0 ? Math.round((item.drawingDone / item.total) * 100) : 0;
-      const machiningPct = item.total > 0 ? Math.round((item.machiningDone / item.total) * 100) : 0;
-      const gaugePct = item.total > 0 ? Math.round((item.gaugeDone / item.total) * 100) : 0;
-      const avgOverallPct = item.total > 0 ? Math.round(item.totalProgSum / item.total) : 0;
-
+    m.itemsList.forEach(item => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><strong>${item.itemNo}</strong></td>
         <td>${item.sku}</td>
         <td style="text-align: center;">${item.total}</td>
         <td style="text-align: center;">
-          <strong style="color: var(--accent);">${drawingPct}%</strong>
+          <strong style="color: var(--accent);">${item.drawingPct}%</strong>
           <br><small style="color: var(--text-muted);">(${item.drawingDone}/${item.drawingPending})</small>
         </td>
         <td style="text-align: center;">
-          <strong style="color: var(--accent);">${machiningPct}%</strong>
+          <strong style="color: var(--accent);">${item.machiningPct}%</strong>
           <br><small style="color: var(--text-muted);">(${item.machiningDone}/${item.machiningPending})</small>
         </td>
         <td style="text-align: center;">
-          <strong style="color: var(--accent);">${gaugePct}%</strong>
+          <strong style="color: var(--accent);">${item.gaugePct}%</strong>
           <br><small style="color: var(--text-muted);">(${item.gaugeDone}/${item.gaugePending})</small>
         </td>
         <td>
           <div class="progress-container">
             <div class="progress-bar-bg">
-              <div class="progress-bar-fill" style="width: ${avgOverallPct}%;"></div>
+              <div class="progress-bar-fill" style="width: ${item.avgOverallPct}%;"></div>
             </div>
-            <span class="progress-text">${avgOverallPct}%</span>
+            <span class="progress-text">${item.avgOverallPct}%</span>
           </div>
         </td>
         <td>${item.notes.length > 0 ? '料號: ' + item.notes.slice(0, 2).join(', ') : '-'}</td>
@@ -1228,6 +1515,316 @@
       analyticsBody.appendChild(tr);
     });
   }
+
+  function renderDashboardCharts(metrics) {
+    if (typeof Chart === 'undefined') return;
+
+    const barCtx = document.getElementById('stage-bar-chart');
+    const doughnutCtx = document.getElementById('status-doughnut-chart');
+    if (!barCtx || !doughnutCtx) return;
+
+    if (stageBarChartInstance) stageBarChartInstance.destroy();
+    if (statusDoughnutChartInstance) statusDoughnutChartInstance.destroy();
+
+    const labels = metrics.itemsList.length > 0 ? metrics.itemsList.map(i => i.itemNo) : ['無資料'];
+    const drawingData = metrics.itemsList.length > 0 ? metrics.itemsList.map(i => i.drawingPct) : [0];
+    const machiningData = metrics.itemsList.length > 0 ? metrics.itemsList.map(i => i.machiningPct) : [0];
+    const gaugeData = metrics.itemsList.length > 0 ? metrics.itemsList.map(i => i.gaugePct) : [0];
+
+    stageBarChartInstance = new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: '圖面進度 %', data: drawingData, backgroundColor: '#0284c7', borderRadius: 4 },
+          { label: '大東加工 %', data: machiningData, backgroundColor: '#059669', borderRadius: 4 },
+          { label: '檢具進度 %', data: gaugeData, backgroundColor: '#d97706', borderRadius: 4 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        scales: { y: { beginAtZero: true, max: 100 } },
+        plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { weight: 'bold' } } } }
+      }
+    });
+
+    statusDoughnutChartInstance = new Chart(doughnutCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['已完成', '進行中', '未開始'],
+        datasets: [{
+          data: [metrics.statusCounts.done, metrics.statusCounts.doing, metrics.statusCounts.todo],
+          backgroundColor: ['#059669', '#0284c7', '#f59e0b'],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { weight: 'bold' } } } }
+      }
+    });
+  }
+
+  // =========================================================================
+  // 一鍵匯出專業版 PDF (包含所有工作表 + 所有圖表 + 集中緊湊排版)
+  // =========================================================================
+  async function generateChartSnapshotImages(metrics) {
+    const tempWrap = document.createElement('div');
+    tempWrap.style.cssText = 'position:fixed; left:-9999px; top:-9999px; width:900px; height:320px; display:flex; gap:20px; background:#fff;';
+    const cBar = document.createElement('canvas');
+    cBar.width = 560;
+    cBar.height = 280;
+    const cDoughnut = document.createElement('canvas');
+    cDoughnut.width = 300;
+    cDoughnut.height = 280;
+    tempWrap.appendChild(cBar);
+    tempWrap.appendChild(cDoughnut);
+    document.body.appendChild(tempWrap);
+
+    const labels = metrics.itemsList.length > 0 ? metrics.itemsList.map(i => i.itemNo) : ['無資料'];
+    const drawingData = metrics.itemsList.length > 0 ? metrics.itemsList.map(i => i.drawingPct) : [0];
+    const machiningData = metrics.itemsList.length > 0 ? metrics.itemsList.map(i => i.machiningPct) : [0];
+    const gaugeData = metrics.itemsList.length > 0 ? metrics.itemsList.map(i => i.gaugePct) : [0];
+
+    const chart1 = new Chart(cBar.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: '圖面進度%', data: drawingData, backgroundColor: '#0284c7' },
+          { label: '大東加工%', data: machiningData, backgroundColor: '#059669' },
+          { label: '檢具進度%', data: gaugeData, backgroundColor: '#d97706' }
+        ]
+      },
+      options: {
+        responsive: false,
+        animation: false,
+        scales: {
+          y: { beginAtZero: true, max: 100, ticks: { font: { size: 11, weight: 'bold' } } },
+          x: { ticks: { font: { size: 10, weight: 'bold' } } }
+        },
+        plugins: { legend: { position: 'top', labels: { font: { size: 11, weight: 'bold' } } } }
+      }
+    });
+
+    const chart2 = new Chart(cDoughnut.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: [
+          `已完成 (${metrics.statusCounts.done})`,
+          `進行中 (${metrics.statusCounts.doing})`,
+          `未開始 (${metrics.statusCounts.todo})`
+        ],
+        datasets: [{
+          data: [metrics.statusCounts.done, metrics.statusCounts.doing, metrics.statusCounts.todo],
+          backgroundColor: ['#059669', '#0284c7', '#f59e0b'],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: false,
+        animation: false,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 11, weight: 'bold' } } } }
+      }
+    });
+
+    const barImgUrl = cBar.toDataURL('image/png', 1.0);
+    const doughnutImgUrl = cDoughnut.toDataURL('image/png', 1.0);
+
+    chart1.destroy();
+    chart2.destroy();
+    document.body.removeChild(tempWrap);
+
+    return { barImgUrl, doughnutImgUrl };
+  }
+
+  document.getElementById('export-pdf-btn').onclick = async () => {
+    const btn = document.getElementById('export-pdf-btn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ 產生報告中...';
+    btn.disabled = true;
+
+    try {
+      const printContainer = document.getElementById('print-report-container');
+      const exportTime = getCurrentFormattedTime();
+      const operatorEmail = auth.currentUser ? auth.currentUser.email : '離線使用者';
+      const totalSheets = appState.workbook.length;
+
+      let sheetsHtml = '';
+
+      for (let idx = 0; idx < appState.workbook.length; idx++) {
+        const sheet = appState.workbook[idx];
+        const m = computeSheetMetrics(sheet);
+        const { barImgUrl, doughnutImgUrl } = await generateChartSnapshotImages(m);
+
+        // 1. 彙總分析表 HTML
+        let summaryRowsHtml = '';
+        if (m.itemsList.length === 0) {
+          summaryRowsHtml = `<tr><td colspan="8" style="text-align:center; color:#64748b;">尚無分析資料</td></tr>`;
+        } else {
+          m.itemsList.forEach(item => {
+            summaryRowsHtml += `
+              <tr>
+                <td><strong>${item.itemNo}</strong></td>
+                <td>${item.sku}</td>
+                <td style="text-align:center;">${item.total}</td>
+                <td style="text-align:center;"><strong>${item.drawingPct}%</strong> (${item.drawingDone}/${item.drawingPending})</td>
+                <td style="text-align:center;"><strong>${item.machiningPct}%</strong> (${item.machiningDone}/${item.machiningPending})</td>
+                <td style="text-align:center;"><strong>${item.gaugePct}%</strong> (${item.gaugeDone}/${item.gaugePending})</td>
+                <td>
+                  <div class="pdf-prog-wrap">
+                    <div class="pdf-prog-bar"><div class="pdf-prog-fill" style="width:${item.avgOverallPct}%;"></div></div>
+                    <strong>${item.avgOverallPct}%</strong>
+                  </div>
+                </td>
+                <td>${item.notes.length > 0 ? item.notes.slice(0, 2).join(', ') : '-'}</td>
+              </tr>`;
+          });
+        }
+
+        // 2. 完整追蹤明細表 HTML
+        const detailHeadersHtml = sheet.columns.map(col => `<th>${col.label}</th>`).join('');
+        let detailRowsHtml = '';
+        if (!sheet.data || sheet.data.length === 0) {
+          detailRowsHtml = `<tr><td colspan="${sheet.columns.length}" style="text-align:center; color:#64748b;">此工作表目前無項目資料</td></tr>`;
+        } else {
+          sheet.data.forEach(row => {
+            const tds = sheet.columns.map(col => {
+              const val = row[col.key] !== undefined ? row[col.key] : '-';
+              if (isProgressCol(col)) {
+                const numVal = Math.min(100, Math.max(0, parseInt(val) || 0));
+                return `
+                  <td>
+                    <div class="pdf-prog-wrap">
+                      <div class="pdf-prog-bar"><div class="pdf-prog-fill" style="width:${numVal}%;"></div></div>
+                      <span>${numVal}%</span>
+                    </div>
+                  </td>`;
+              } else if (col.key === 'status') {
+                return `<td style="text-align:center; font-weight:800;">${val || '未開始'}</td>`;
+              } else if (isImageUrl(val)) {
+                return `<td style="text-align:center;"><img src="${val}" style="max-height:28px; max-width:40px; object-fit:contain;"></td>`;
+              }
+              return `<td>${val}</td>`;
+            }).join('');
+            detailRowsHtml += `<tr>${tds}</tr>`;
+          });
+        }
+
+        sheetsHtml += `
+          <section class="pdf-sheet-section ${idx > 0 ? 'page-break' : ''}">
+            <div class="pdf-sheet-banner">
+              <span>📁 工作表 (${idx + 1}/${totalSheets})：${sheet.name}</span>
+              <span style="font-size:8.5pt; font-weight:600;">品號數: ${m.uniqueItemsCount} ｜ 總項目數: ${m.totalTasks}</span>
+            </div>
+
+            <!-- 集中 KPI 卡片列 -->
+            <div class="pdf-kpi-row">
+              <div class="pdf-kpi-card">
+                <div class="k-title">總品號數量</div>
+                <div class="k-val" style="color:#0f172a;">${m.uniqueItemsCount}</div>
+                <div class="k-sub">獨立追蹤品號</div>
+              </div>
+              <div class="pdf-kpi-card">
+                <div class="k-title">總追蹤項目</div>
+                <div class="k-val" style="color:#0f172a;">${m.totalTasks}</div>
+                <div class="k-sub">已建立任務列</div>
+              </div>
+              <div class="pdf-kpi-card">
+                <div class="k-title">📐 圖面進度完成率</div>
+                <div class="k-val">${m.drawingRate}%</div>
+                <div class="k-sub">完成 ${m.drawingDone} / 未完 ${m.drawingPending}</div>
+              </div>
+              <div class="pdf-kpi-card">
+                <div class="k-title">⚙️ 大東加工完成率</div>
+                <div class="k-val">${m.machiningRate}%</div>
+                <div class="k-sub">完成 ${m.machiningDone} / 未完 ${m.machiningPending}</div>
+              </div>
+              <div class="pdf-kpi-card">
+                <div class="k-title">🔍 檢具進度完成率</div>
+                <div class="k-val">${m.gaugeRate}%</div>
+                <div class="k-sub">完成 ${m.gaugeDone} / 未完 ${m.gaugePending}</div>
+              </div>
+            </div>
+
+            <!-- 集中視覺化分析圖表 -->
+            <div class="pdf-charts-row">
+              <div class="pdf-chart-card">
+                <h4>📊 各品號三大關卡進度對比圖</h4>
+                <img src="${barImgUrl}" alt="各品號進度對比圖">
+              </div>
+              <div class="pdf-chart-card">
+                <h4>🍩 專案任務狀態分佈</h4>
+                <img src="${doughnutImgUrl}" alt="狀態分佈圖">
+              </div>
+            </div>
+
+            <!-- 集中彙總分析表 -->
+            <div class="pdf-sub-heading">📌 品號 / 貨號進度分析彙總表</div>
+            <table class="pdf-table">
+              <thead>
+                <tr>
+                  <th>品號</th>
+                  <th>貨號</th>
+                  <th style="text-align:center;">總件數</th>
+                  <th style="text-align:center;">圖面進度 (完/未)</th>
+                  <th style="text-align:center;">大東加工 (完/未)</th>
+                  <th style="text-align:center;">檢具進度 (完/未)</th>
+                  <th>整體平均進度</th>
+                  <th>備註</th>
+                </tr>
+              </thead>
+              <tbody>${summaryRowsHtml}</tbody>
+            </table>
+
+            <!-- 集中追蹤明細表 -->
+            <div class="pdf-sub-heading">📋 專案進度追蹤完整明細 (${sheet.name})</div>
+            <table class="pdf-table">
+              <thead><tr>${detailHeadersHtml}</tr></thead>
+              <tbody>${detailRowsHtml}</tbody>
+            </table>
+          </section>
+        `;
+      }
+
+      printContainer.innerHTML = `
+        <div class="pdf-cover-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <img src="${appState.logoUrl || defaultLogo}" style="width:36px; height:36px; object-fit:contain; border-radius:6px; border:1px solid #cbd5e1; padding:2px;">
+            <div class="pdf-cover-title">
+              <h1>Filament Outsource Tracing — 專案整合進度報告</h1>
+              <p>包含全部工作表追蹤明細、關鍵 KPI 指標及三大關卡視覺化分析圖表</p>
+            </div>
+          </div>
+          <div class="pdf-meta-box">
+            <div><strong>匯出時間：</strong>${exportTime}</div>
+            <div><strong>資料最後更新：</strong>${appState.lastUpdated || '無紀錄'}</div>
+            <div><strong>匯出人員：</strong>${operatorEmail} ｜ <strong>工作表總數：</strong>${totalSheets} 份</div>
+          </div>
+        </div>
+        ${sheetsHtml}
+        <div class="pdf-footer">
+          <span>Filament Outsource Tracing Enterprise System</span>
+          <span>本報告由系統自動彙整所有分頁與即時分析圖表產生</span>
+        </div>
+      `;
+
+      // 設定列印檔案預設名稱並觸發瀏覽器原生高解析 PDF 匯出
+      const originalTitle = document.title;
+      document.title = `Filament_Outsource_專業報告_${new Date().toISOString().slice(0, 10)}`;
+      setTimeout(() => {
+        window.print();
+        document.title = originalTitle;
+      }, 200);
+    } finally {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  };
 
   function editColumnLabel(colIndex) {
     const sheet = getActiveSheet();
